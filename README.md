@@ -1,5 +1,5 @@
 # JeiGuard AI 🛡️
-
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19076945.svg)](https://doi.org/10.5281/zenodo.19076945)
 > **Sistema de Detección de Intrusiones con Inteligencia Artificial**  
 > Arquitectura de microservicios · Apache Kafka · CNN-1D + Random Forest
 

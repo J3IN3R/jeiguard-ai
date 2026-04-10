@@ -1,6 +1,6 @@
 # JeiGuard AI 🛡️
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19076945.svg)](https://doi.org/10.5281/zenodo.19076945)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19490415.svg)](https://doi.org/10.5281/zenodo.19490415)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![Version](https://img.shields.io/badge/Version-1.0.1-orange)

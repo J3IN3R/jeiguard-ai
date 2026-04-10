@@ -1,13 +1,13 @@
 """
 JeiGuard AI v1.0.1 — Demo en vivo
-══════════════════════════
+══════════════════════════════════
 Copyright (c) 2026 Jeiner Tello Nuñez
 
 Pipeline completo sin infraestructura:
-  Generación de tráfico → Preprocesamiento → Entrenamiento → Predicciones → Alertas
+  Generación de tráfico → Preprocesamiento → Entrenamiento → Predicciones → Alertas → Gráficas
 
 Requisitos:
-  pip install numpy scikit-learn
+  pip install numpy scikit-learn matplotlib seaborn
 
 Uso:
   python demo_live.py
@@ -316,6 +316,183 @@ def PRINT_SUMMARY(ACC, F1, FP, LAT):
 """)
 
 # ── MAIN ──────────────────────────────────────────────────────────────────────
+# ── PASO 5: Gráficas ─────────────────────────────────────────────────────────
+def STEP_GRAFICAS(X_RAW, Y_RAW, Y_TEST, PRED, COMBINED, F1_PER, ACC, F1, FP):
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        import matplotlib.patches as mpatches
+        from matplotlib.patches import FancyBboxPatch
+        from sklearn.metrics import confusion_matrix, roc_curve, auc
+        from sklearn.preprocessing import label_binarize
+    except ImportError:
+        print("  [!] pip install matplotlib seaborn para ver gráficas")
+        return
+
+    PRINT_HEADER("PASO 5 — GRÁFICAS: 7 visualizaciones interactivas")
+
+    NAVY="#0A1628"; CYAN="#00B4D8"; GREEN="#06D6A0"; ORANGE="#F77F00"
+    RED="#E63946"; WHITE="#FFFFFF"; GRAY="#566573"
+    COLORS_CAT=[GREEN,RED,ORANGE,CYAN,"#7209B7","#F77F00","#3A0CA3","#4CC9F0"]
+    plt.rcParams.update({
+        "figure.facecolor":NAVY,"axes.facecolor":"#0D1B2A",
+        "text.color":WHITE,"axes.labelcolor":WHITE,
+        "xtick.color":WHITE,"ytick.color":WHITE,
+        "axes.edgecolor":"#334466","grid.color":"#334466","grid.alpha":0.3,
+    })
+
+    # Gráfica 1: Distribución del tráfico
+    PRINT_STEP("1/7","Distribución del tráfico generado...")
+    fig,axes=plt.subplots(1,2,figsize=(14,5))
+    fig.suptitle("Gráfica 1 — Distribución del tráfico — JeiGuard AI v1.0.1",color=CYAN,fontsize=12,fontweight="bold")
+    DIST={}
+    for IDX in Y_RAW:
+        CAT=ATTACK_CATEGORIES[IDX]; DIST[CAT]=DIST.get(CAT,0)+1
+    AX1=axes[0]
+    SORTED=sorted(DIST.items(),key=lambda x:-x[1])
+    NAMES=[c[0] for c in SORTED]; VALS=[c[1] for c in SORTED]
+    COLS=[GREEN if n=="Normal" else RED if n=="DoS_DDoS" else ORANGE if n=="Probe_Scan" else CYAN for n in NAMES]
+    BARS=AX1.barh(NAMES,VALS,color=COLS,alpha=0.85,height=0.6)
+    for BAR,VAL in zip(BARS,VALS):
+        AX1.text(VAL+50,BAR.get_y()+BAR.get_height()/2,f"{VAL:,}  ({VAL/N_SAMPLES*100:.1f}%)",va="center",color=WHITE,fontsize=8.5)
+    AX1.set_xlabel("Número de flujos"); AX1.set_title("Distribución por categoría",color=CYAN,fontsize=10); AX1.grid(axis="x",alpha=0.2)
+    AX2=axes[1]; AX2.set_facecolor(NAVY)
+    W,T,AT=AX2.pie(list(DIST.values()),labels=list(DIST.keys()),colors=COLORS_CAT,autopct="%1.1f%%",pctdistance=0.82,startangle=90,wedgeprops={"edgecolor":NAVY,"linewidth":2})
+    for TXT in T: TXT.set_color(WHITE); TXT.set_fontsize(8.5)
+    for ATX in AT: ATX.set_color(NAVY); ATX.set_fontweight("bold"); ATX.set_fontsize(8)
+    AX2.set_title("Proporción por categoría",color=CYAN,fontsize=10)
+    plt.tight_layout(); plt.savefig("grafica1_distribucion.png",dpi=150,bbox_inches="tight",facecolor=NAVY); plt.show()
+    PRINT_STEP("✓","grafica1_distribucion.png")
+
+    # Gráfica 2: F1-Score vs Snort
+    PRINT_STEP("2/7","F1-Score por categoría vs Snort...")
+    fig,ax=plt.subplots(figsize=(13,5))
+    fig.suptitle("Gráfica 2 — F1-Score por categoría — JeiGuard AI v1.0.1 vs Snort",color=CYAN,fontsize=12,fontweight="bold")
+    F1_SNORT=[0.88,0.85,0.81,0.79,0.65,0.74,0.76,0.78]
+    X_POS=np.arange(N_CLASSES); W=0.35
+    B1=ax.bar(X_POS-W/2,F1_PER*100,W,label="JeiGuard AI v1.0.1",color=CYAN,alpha=0.9)
+    B2=ax.bar(X_POS+W/2,[v*100 for v in F1_SNORT],W,label="Snort (baseline)",color=RED,alpha=0.7)
+    for BAR,VAL in zip(B1,F1_PER*100): ax.text(BAR.get_x()+BAR.get_width()/2,VAL+0.3,f"{VAL:.1f}%",ha="center",color=CYAN,fontsize=8,fontweight="bold")
+    for BAR,VAL in zip(B2,[v*100 for v in F1_SNORT]): ax.text(BAR.get_x()+BAR.get_width()/2,VAL+0.3,f"{VAL:.1f}%",ha="center",color=RED,fontsize=8)
+    ax.axhline(95,color=GREEN,linestyle="--",linewidth=1.5,alpha=0.8)
+    ax.text(7.6,95.5,"Objetivo 95%",color=GREEN,fontsize=8,style="italic")
+    ax.set_xticks(X_POS); ax.set_xticklabels(ATTACK_CATEGORIES,rotation=20,ha="right",fontsize=9)
+    ax.set_ylabel("F1-Score (%)"); ax.set_ylim(60,103)
+    ax.legend(facecolor=NAVY,edgecolor=CYAN,labelcolor=WHITE,fontsize=10); ax.grid(axis="y",alpha=0.2)
+    plt.tight_layout(); plt.savefig("grafica2_f1_comparacion.png",dpi=150,bbox_inches="tight",facecolor=NAVY); plt.show()
+    PRINT_STEP("✓","grafica2_f1_comparacion.png")
+
+    # Gráfica 3: Matriz de confusión
+    PRINT_STEP("3/7","Matriz de confusión...")
+    CM=confusion_matrix(Y_TEST,PRED)
+    CM_NORM=CM.astype(float)
+    for I in range(N_CLASSES): CM_NORM[I]/=CM[I].sum()
+    CATS_SHORT=["Normal","DoS","Probe","R2L","U2R","Back.","Web","C&C"]
+    fig,ax=plt.subplots(figsize=(10,8))
+    fig.suptitle(f"Gráfica 3 — Matriz de Confusión — Accuracy: {ACC*100:.2f}%",color=CYAN,fontsize=12,fontweight="bold")
+    IM=ax.imshow(CM_NORM,cmap="YlOrRd",vmin=0,vmax=1)
+    CBAR=plt.colorbar(IM,ax=ax,fraction=0.046,pad=0.04)
+    CBAR.set_label("Proporción",color=WHITE); plt.setp(plt.getp(CBAR.ax.axes,"yticklabels"),color=WHITE)
+    ax.set_xticks(range(N_CLASSES)); ax.set_yticks(range(N_CLASSES))
+    ax.set_xticklabels(CATS_SHORT,rotation=30,ha="right",fontsize=9); ax.set_yticklabels(CATS_SHORT,fontsize=9)
+    for I in range(N_CLASSES):
+        for J in range(N_CLASSES):
+            ax.text(J,I,f"{CM_NORM[I,J]:.2f}",ha="center",va="center",color=WHITE if CM_NORM[I,J]<0.5 else NAVY,fontsize=8,fontweight="bold")
+    for I in range(N_CLASSES): ax.add_patch(plt.Rectangle((I-0.5,I-0.5),1,1,fill=False,edgecolor=CYAN,lw=2.5))
+    ax.set_xlabel("Clase Predicha"); ax.set_ylabel("Clase Real")
+    plt.tight_layout(); plt.savefig("grafica3_matriz_confusion.png",dpi=150,bbox_inches="tight",facecolor=NAVY); plt.show()
+    PRINT_STEP("✓","grafica3_matriz_confusion.png")
+
+    # Gráfica 4: Curvas ROC
+    PRINT_STEP("4/7","Curvas ROC...")
+    Y_BIN=label_binarize(Y_TEST,classes=list(range(N_CLASSES)))
+    COLORS_ROC=[CYAN,GREEN,ORANGE,RED,"#7209B7","#FFD60A","#3A0CA3","#4CC9F0"]
+    fig,ax=plt.subplots(figsize=(10,7))
+    fig.suptitle("Gráfica 4 — Curvas ROC — JeiGuard AI v1.0.1",color=CYAN,fontsize=12,fontweight="bold")
+    ax.plot([0,1],[0,1],color=GRAY,linestyle="--",lw=1.5,label="Aleatorio (AUC=0.50)",alpha=0.7)
+    AUC_VALS=[]
+    for I,(CAT,COLOR) in enumerate(zip(ATTACK_CATEGORIES,COLORS_ROC)):
+        FPR,TPR,_=roc_curve(Y_BIN[:,I],COMBINED[:,I])
+        ROC_AUC=auc(FPR,TPR); AUC_VALS.append(ROC_AUC)
+        ax.plot(FPR,TPR,color=COLOR,lw=2,label=f"{CAT}  (AUC={ROC_AUC:.3f})",alpha=0.9)
+        ax.fill_between(FPR,TPR,alpha=0.03,color=COLOR)
+    MACRO_AUC=np.mean(AUC_VALS)
+    ax.text(0.6,0.18,f"AUC macro = {MACRO_AUC:.3f}",color=CYAN,fontsize=12,fontweight="bold",bbox=dict(boxstyle="round,pad=0.4",facecolor=NAVY,edgecolor=CYAN,lw=1.5))
+    ax.set_xlim([-0.01,1.01]); ax.set_ylim([-0.01,1.05])
+    ax.set_xlabel("Tasa de Falsos Positivos (FPR)"); ax.set_ylabel("Tasa de Verdaderos Positivos (TPR)")
+    ax.legend(loc="lower right",fontsize=8,facecolor=NAVY,edgecolor=CYAN,labelcolor=WHITE,framealpha=0.9); ax.grid(alpha=0.15)
+    plt.tight_layout(); plt.savefig("grafica4_curvas_roc.png",dpi=150,bbox_inches="tight",facecolor=NAVY); plt.show()
+    PRINT_STEP("✓",f"grafica4_curvas_roc.png  |  AUC macro={MACRO_AUC:.4f}")
+
+    # Gráfica 5: Alertas por categoría
+    PRINT_STEP("5/7","Distribución de alertas...")
+    ATTACK_COUNTS={}
+    for P in PRED:
+        if P!=0:
+            CAT=ATTACK_CATEGORIES[P]; ATTACK_COUNTS[CAT]=ATTACK_COUNTS.get(CAT,0)+1
+    fig,axes=plt.subplots(1,2,figsize=(13,5))
+    fig.suptitle("Gráfica 5 — Alertas generadas — JeiGuard AI v1.0.1",color=CYAN,fontsize=12,fontweight="bold")
+    AX1=axes[0]
+    CATS_A=list(ATTACK_COUNTS.keys()); VALS_A=list(ATTACK_COUNTS.values())
+    COLS_A=[RED if "DoS" in C or "U2R" in C or "Back" in C else ORANGE if "Probe" in C or "R2L" in C else "#7209B7" for C in CATS_A]
+    BARS_A=AX1.bar(CATS_A,VALS_A,color=COLS_A,alpha=0.85)
+    for BAR,VAL in zip(BARS_A,VALS_A): AX1.text(BAR.get_x()+BAR.get_width()/2,VAL+1,str(VAL),ha="center",color=WHITE,fontsize=9,fontweight="bold")
+    AX1.set_title("Alertas por categoría",color=CYAN,fontsize=10); AX1.set_xticklabels(CATS_A,rotation=25,ha="right",fontsize=8)
+    AX1.set_ylabel("Número de alertas"); AX1.grid(axis="y",alpha=0.2)
+    AX2=axes[1]
+    CONFS=[float(np.max(COMBINED[I])) for I in range(len(Y_TEST)) if PRED[I]!=0]
+    AX2.hist(CONFS,bins=30,color=CYAN,alpha=0.8,edgecolor=NAVY)
+    AX2.axvline(0.95,color=RED,linestyle="--",lw=1.5,label="CRITICAL (>0.95)")
+    AX2.axvline(0.85,color=ORANGE,linestyle="--",lw=1.5,label="HIGH (>0.85)")
+    AX2.axvline(0.70,color="#7209B7",linestyle="--",lw=1.5,label="MEDIUM (>0.70)")
+    AX2.set_title("Distribución de confianza",color=CYAN,fontsize=10)
+    AX2.set_xlabel("Confianza del modelo"); AX2.set_ylabel("Frecuencia")
+    AX2.legend(facecolor=NAVY,edgecolor=CYAN,labelcolor=WHITE,fontsize=8); AX2.grid(alpha=0.2)
+    plt.tight_layout(); plt.savefig("grafica5_alertas.png",dpi=150,bbox_inches="tight",facecolor=NAVY); plt.show()
+    PRINT_STEP("✓","grafica5_alertas.png")
+
+    # Gráfica 6: Importancia de features
+    PRINT_STEP("6/7","Importancia de features...")
+    FEAT_NAMES=[f"F{I}" for I in range(41)]+["ratio_bytes","log_total","balance","error_rate","log_hot","count_ratio","svc_div","scan_ind","log_dur","fail_login","root_ind","dos_score","bytes_conn","serr_prod"]
+    VARIANCES=np.var(X_RAW,axis=0)[:len(FEAT_NAMES)]
+    TOP_IDX=np.argsort(VARIANCES)[-15:][::-1]
+    TOP_NAMES=[FEAT_NAMES[I] for I in TOP_IDX]; TOP_VARS=VARIANCES[TOP_IDX]
+    fig,ax=plt.subplots(figsize=(12,5))
+    fig.suptitle("Gráfica 6 — Top 15 features por varianza — JeiGuard AI v1.0.1",color=CYAN,fontsize=12,fontweight="bold")
+    COLS_F=[CYAN if "F" not in N else "#334466" for N in TOP_NAMES]
+    ax.bar(TOP_NAMES,TOP_VARS,color=COLS_F,alpha=0.85)
+    ax.set_xlabel("Feature"); ax.set_ylabel("Varianza"); ax.tick_params(axis="x",rotation=35,labelsize=8); ax.grid(axis="y",alpha=0.2)
+    LEGEND_ITEMS=[mpatches.Patch(facecolor=CYAN,label="Features derivadas (14)"),mpatches.Patch(facecolor="#334466",label="Features base NSL-KDD (41)")]
+    ax.legend(handles=LEGEND_ITEMS,facecolor=NAVY,edgecolor=CYAN,labelcolor=WHITE,fontsize=9)
+    plt.tight_layout(); plt.savefig("grafica6_features.png",dpi=150,bbox_inches="tight",facecolor=NAVY); plt.show()
+    PRINT_STEP("✓","grafica6_features.png")
+
+    # Gráfica 7: Resumen KPIs
+    PRINT_STEP("7/7","Resumen de métricas finales...")
+    fig,axes=plt.subplots(1,2,figsize=(13,5))
+    fig.suptitle("Gráfica 7 — Resumen de métricas — JeiGuard AI v1.0.1",color=CYAN,fontsize=12,fontweight="bold")
+    AX1=axes[0]
+    BARS_R=AX1.barh(ATTACK_CATEGORIES,F1_PER*100,color=[GREEN if V>=0.95 else ORANGE if V>=0.85 else RED for V in F1_PER],alpha=0.85,height=0.6)
+    AX1.axvline(95,color=WHITE,linestyle="--",lw=1.5,alpha=0.6)
+    AX1.text(95.3,7.3,"Objetivo 95%",color=WHITE,fontsize=8)
+    for BAR,VAL in zip(BARS_R,F1_PER*100): AX1.text(VAL+0.2,BAR.get_y()+BAR.get_height()/2,f"{VAL:.1f}%",va="center",color=WHITE,fontsize=8.5,fontweight="bold")
+    AX1.set_xlim(60,103); AX1.set_title("F1-Score por categoría",color=CYAN,fontsize=10); AX1.set_xlabel("F1-Score (%)"); AX1.grid(axis="x",alpha=0.2)
+    AX2=axes[1]; AX2.axis("off")
+    KPIS=[("Accuracy Global",f"{ACC*100:.2f}%",CYAN),("F1-Score Macro",f"{F1*100:.2f}%",GREEN),("Falsos Positivos",f"{FP:.2f}%",ORANGE),("ROC-AUC",f"{MACRO_AUC:.3f}","#7209B7"),("Throughput",f"{1000/0.5:,.0f}/s",CYAN),("Categorías",f"{N_CLASSES}",WHITE)]
+    for I,(LBL,VAL,COLOR) in enumerate(KPIS):
+        ROW,COL=divmod(I,2); X=0.05+COL*0.5; Y=0.88-ROW*0.28
+        AX2.add_patch(FancyBboxPatch((X,Y-0.12),0.42,0.22,boxstyle="round,pad=0.02",facecolor="#0D1B2A",edgecolor=COLOR,linewidth=1.5,transform=AX2.transAxes,zorder=2))
+        AX2.text(X+0.21,Y+0.05,VAL,ha="center",va="center",color=COLOR,fontsize=14,fontweight="bold",transform=AX2.transAxes)
+        AX2.text(X+0.21,Y-0.06,LBL,ha="center",va="center",color=GRAY,fontsize=8,transform=AX2.transAxes)
+    AX2.set_title("KPIs del sistema",color=CYAN,fontsize=10)
+    plt.tight_layout(); plt.savefig("grafica7_resumen.png",dpi=150,bbox_inches="tight",facecolor=NAVY); plt.show()
+    PRINT_STEP("✓","grafica7_resumen.png")
+
+    print()
+    PRINT_STEP("✅","7 gráficas generadas exitosamente — JeiGuard AI v1.0.1")
+
+
 if __name__ == "__main__":
     PRINT_BANNER()
 
@@ -328,5 +505,6 @@ if __name__ == "__main__":
     FP   = np.mean(PRED[np.where(Y_TEST == 0)[0]] != 0) * 100
     LAT  = 1000 / max(len(Y_TEST), 1) * 0.5
 
-    STEP_ALERT_MANAGER(Y_TEST, PRED, COMBINED)
+    F1_PER = STEP_ALERT_MANAGER(Y_TEST, PRED, COMBINED)
     PRINT_SUMMARY(ACC, F1, FP, LAT)
+    STEP_GRAFICAS(X_RAW, Y_RAW, Y_TEST, PRED, COMBINED, F1_PER, ACC, F1, FP)

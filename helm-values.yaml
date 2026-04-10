@@ -1,0 +1,269 @@
+# JeiGuard AI v1.0.2 — Helm Chart Values
+# Despliegue completo en Kubernetes con HPA y monitoreo
+# Copyright © 2026 Jeiner Tello Nuñez — MIT License
+
+global:
+  image:
+    registry:    ghcr.io
+    repository:  j3in3r/jeiguard-ai
+    tag:         "1.0.2"
+    pullPolicy:  IfNotPresent
+  environment:   production
+  kafkaBrokers:  "kafka:9092"
+  elasticUrl:    "http://elasticsearch:9200"
+
+# ── Inference Service ─────────────────────────────────────────────────────────
+inference:
+  enabled:      true
+  replicaCount: 3
+
+  image:
+    name: inference-service
+
+  resources:
+    requests:
+      cpu:    "500m"
+      memory: "1Gi"
+    limits:
+      cpu:    "2000m"
+      memory: "4Gi"
+
+  autoscaling:
+    enabled:                         true
+    minReplicas:                     2
+    maxReplicas:                     20
+    targetCPUUtilizationPercentage:  65
+    targetMemoryUtilization:         70
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  livenessProbe:
+    httpGet:
+      path:                /health
+      port:                8080
+    initialDelaySeconds:   30
+    periodSeconds:         10
+    failureThreshold:      3
+
+  readinessProbe:
+    httpGet:
+      path:                /health
+      port:                8080
+    initialDelaySeconds:   20
+    periodSeconds:         5
+
+  env:
+    CNN_WEIGHT:            "0.60"
+    RF_WEIGHT:             "0.40"
+    BATCH_SIZE:            "32"
+    MODEL_PATH:            "/models"
+    MAX_LATENCY_MS:        "12"
+    LOG_LEVEL:             "INFO"
+
+  volumeMounts:
+    - name:      models
+      mountPath: /models
+      readOnly:  true
+
+  volumes:
+    - name: models
+      persistentVolumeClaim:
+        claimName: jeiguard-models-pvc
+
+# ── Preprocessor Service ──────────────────────────────────────────────────────
+preprocessor:
+  enabled:      true
+  replicaCount: 2
+
+  image:
+    name: preprocessor-service
+
+  resources:
+    requests:
+      cpu:    "250m"
+      memory: "512Mi"
+    limits:
+      cpu:    "1000m"
+      memory: "2Gi"
+
+  autoscaling:
+    enabled:     true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+  env:
+    KAFKA_CONSUMER_GROUP: "jeiguard-preprocessor"
+    SCALER_PATH:          "/models/scaler.joblib"
+
+# ── Producer Service ──────────────────────────────────────────────────────────
+producer:
+  enabled:      true
+  replicaCount: 2
+
+  image:
+    name: producer-service
+
+  resources:
+    requests:
+      cpu:    "200m"
+      memory: "256Mi"
+    limits:
+      cpu:    "500m"
+      memory: "1Gi"
+
+  env:
+    CAPTURE_INTERFACE: "eth0"
+    BATCH_SIZE:        "100"
+    FLUSH_INTERVAL_MS: "100"
+
+# ── Alert Manager ─────────────────────────────────────────────────────────────
+alertManager:
+  enabled:      true
+  replicaCount: 2
+
+  image:
+    name: alert-manager-service
+
+  resources:
+    requests:
+      cpu:    "200m"
+      memory: "256Mi"
+    limits:
+      cpu:    "500m"
+      memory: "1Gi"
+
+  env:
+    DEDUP_WINDOW_S:    "60"
+    MAX_ALERTS_HOUR:   "1000"
+    ELASTIC_INDEX:     "ids-alerts"
+
+# ── LLM Analyst (nuevo en v1.0.2) ─────────────────────────────────────────────
+llmAnalyst:
+  enabled:      true
+  replicaCount: 1
+
+  image:
+    name: llm-analyst-service
+
+  resources:
+    requests:
+      cpu:    "200m"
+      memory: "512Mi"
+    limits:
+      cpu:    "1000m"
+      memory: "2Gi"
+
+  env:
+    LLM_MODEL:          "claude-opus-4-5"
+    CACHE_TTL_S:        "3600"
+
+  secretEnv:
+    - name:       ANTHROPIC_API_KEY
+      secretName: jeiguard-secrets
+      secretKey:  anthropic-api-key
+
+# ── SOAR Engine (nuevo en v1.0.2) ─────────────────────────────────────────────
+soarEngine:
+  enabled:      true
+  replicaCount: 1
+
+  image:
+    name: soar-engine
+
+  resources:
+    requests:
+      cpu:    "200m"
+      memory: "256Mi"
+    limits:
+      cpu:    "500m"
+      memory: "1Gi"
+
+  env:
+    DRY_RUN: "false"
+
+  secretEnv:
+    - name:       JIRA_TOKEN
+      secretName: jeiguard-secrets
+      secretKey:  jira-token
+    - name:       SLACK_WEBHOOK
+      secretName: jeiguard-secrets
+      secretKey:  slack-webhook
+
+# ── Threat Intel (nuevo en v1.0.2) ────────────────────────────────────────────
+threatIntel:
+  enabled:      true
+  replicaCount: 1
+
+  image:
+    name: threat-intel-service
+
+  secretEnv:
+    - name:       ABUSEIPDB_KEY
+      secretName: jeiguard-secrets
+      secretKey:  abuseipdb-key
+    - name:       VIRUSTOTAL_KEY
+      secretName: jeiguard-secrets
+      secretKey:  virustotal-key
+
+# ── Ingress ───────────────────────────────────────────────────────────────────
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rate-limit:         "1000"
+    nginx.ingress.kubernetes.io/ssl-redirect:       "true"
+    cert-manager.io/cluster-issuer:                "letsencrypt-prod"
+
+  hosts:
+    - host: jeiguard-ai.example.com
+      paths:
+        - path:     /api
+          pathType: Prefix
+          service:  inference
+          port:     8080
+        - path:     /
+          pathType: Prefix
+          service:  streamlit-ui
+          port:     8501
+
+  tls:
+    - secretName: jeiguard-ai-tls
+      hosts:
+        - jeiguard-ai.example.com
+
+# ── Monitoreo ─────────────────────────────────────────────────────────────────
+monitoring:
+  prometheus:
+    enabled:         true
+    scrapeInterval:  "15s"
+    serviceMonitor:  true
+
+  grafana:
+    enabled:  true
+    dashboards:
+      - jeiguard-ai-overview
+      - jeiguard-ai-inference
+      - jeiguard-ai-alerts
+
+  alertmanager:
+    enabled: true
+    receivers:
+      - name:     slack-critical
+        slackConfigs:
+          - channel: "#security-alerts"
+
+# ── Persistencia ──────────────────────────────────────────────────────────────
+persistence:
+  models:
+    enabled:      true
+    storageClass: "gp3"
+    size:         "50Gi"
+    accessMode:   ReadOnlyMany
+
+  logs:
+    enabled:      true
+    storageClass: "gp3"
+    size:         "100Gi"

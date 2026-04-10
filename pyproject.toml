@@ -9,7 +9,7 @@ build-backend = "setuptools.backends.legacy:build"
 
 [project]
 name        = "jeiguard-ai"
-version     = "1.0.0"
+version     = "1.0.1"
 description = "Sistema de Detección de Intrusiones basado en IA — Proyecto de Grado"
 readme      = "README.md"
 requires-python = ">=3.11"

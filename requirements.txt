@@ -1,0 +1,42 @@
+# JeiGuard AI v1.0.1 — Dependencias
+# Copyright © 2026 Jeiner Tello Nuñez — MIT License
+#
+# Instalación mínima para demo:
+#   pip install numpy scikit-learn
+#
+# Instalación completa:
+#   pip install -r requirements.txt
+
+# ── Core ML ───────────────────────────────────────────────────────────────────
+numpy>=1.26.0
+scikit-learn>=1.3.0
+scipy>=1.11.0
+joblib>=1.3.0
+
+# ── Interfaz web (Mejora 2) ───────────────────────────────────────────────────
+streamlit>=1.29.0
+plotly>=5.18.0
+pandas>=2.1.0
+
+# ── API REST ──────────────────────────────────────────────────────────────────
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+httpx>=0.25.0
+
+# ── Infraestructura ───────────────────────────────────────────────────────────
+confluent-kafka>=2.3.0
+elasticsearch>=8.11.0
+
+# ── LLM Analyst (Mejora 7) ───────────────────────────────────────────────────
+anthropic>=0.20.0
+
+# ── Opcionales ────────────────────────────────────────────────────────────────
+# tensorflow>=2.14.0    # Mejoras 3 y 5: CNN-1D + Autoencoder
+# shap>=0.44.0          # Mejora 1: XAI con SHAP real
+
+# ── Calidad de código ─────────────────────────────────────────────────────────
+pytest>=7.4.0
+pytest-cov>=4.1.0
+mypy>=1.7.0
+ruff>=0.1.0

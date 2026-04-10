@@ -1,5 +1,5 @@
 """
-JeiGuard AI — Demo en vivo
+JeiGuard AI v1.0.1 — Demo en vivo
 ══════════════════════════
 Copyright (c) 2026 Jeiner Tello Nuñez
 
@@ -68,7 +68,7 @@ def PRINT_STEP(STEP, MSG):
 
 def PRINT_BANNER():
     print("\n" + "╔" + "═"*60 + "╗")
-    print("║" + " "*15 + "JeiGuard AI v1.0.0" + " "*27 + "║")
+    print("║" + " "*15 + "JeiGuard AI v1.0.1" + " "*27 + "║")
     print("║" + " "*8 + "Sistema de Detección de Intrusiones con IA" + " "*10 + "║")
     print("║" + " "*12 + "Copyright © 2026 Jeiner Tello Nuñez" + " "*12 + "║")
     print("╚" + "═"*60 + "╝\n")

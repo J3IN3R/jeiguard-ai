@@ -8,6 +8,7 @@
   <meta name="description" content="Sistema de Detección de Intrusiones con IA. CNN-1D + Random Forest. 97.4% accuracy. 15,000 flujos/seg. Multi-cloud." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
   <style>
     :root {
       --bg:        #080c14;
@@ -26,6 +27,13 @@
       --muted:     #64748b;
       --card:      rgba(255,255,255,0.03);
     }
+    :root.light {
+      --bg: #f0f4f8; --bg2: #ffffff; --card: #ffffff;
+      --border: #cbd5e1; --text: #1e293b; --muted: #64748b;
+      --primary: #0284c7; --accent: #7c3aed;
+    }
+    :root.light .navbar { background: rgba(255,255,255,.92); }
+    :root.light .hero    { background: linear-gradient(135deg,#e0f2fe 0%,#ede9fe 100%); }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
@@ -693,6 +701,190 @@
     }
     .form-input:focus { border-color: var(--primary); }
     .form-input option { background: var(--bg2); }
+
+    /* ── LIGHT THEME ── */
+    body.light {
+      --bg:     #f1f5f9;
+      --bg2:    #ffffff;
+      --bg3:    #f8fafc;
+      --border: rgba(0,0,0,0.1);
+      --text:   #0f172a;
+      --muted:  #64748b;
+      --card:   rgba(0,0,0,0.03);
+    }
+    body.light nav { background: rgba(241,245,249,0.92); }
+    body.light .code-panel,
+    body.light .ws-terminal { background: #f8fafc; }
+    body.light pre { color: #1e293b; }
+
+    /* ── THEME TOGGLE BUTTON ── */
+    .btn-theme {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); padding: .35rem .7rem; border-radius: 6px;
+      font-size: .85rem; cursor: pointer; font-family: inherit;
+      transition: all .2s; line-height: 1;
+    }
+    .btn-theme:hover { border-color: var(--primary); color: var(--text); }
+
+    /* ── LANG TOGGLE ── */
+    .btn-lang {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); padding: .35rem .7rem; border-radius: 6px;
+      font-size: .78rem; font-weight: 700; cursor: pointer; font-family: inherit;
+      transition: all .2s; letter-spacing: .04em;
+    }
+    .btn-lang:hover { border-color: var(--primary); color: var(--text); }
+
+    /* ── STATUS BADGE ── */
+    .nav-status {
+      display: flex; align-items: center; gap: .35rem;
+      font-size: .72rem; font-weight: 700; color: var(--green);
+      background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.25);
+      padding: .25rem .65rem; border-radius: 99px;
+    }
+    .nav-status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); animation: pulse 2s infinite;
+    }
+
+    /* ── NOTIFICATION BELL ── */
+    .btn-notif {
+      position: relative; background: transparent; border: 1px solid var(--border);
+      color: var(--muted); padding: .35rem .7rem; border-radius: 6px;
+      font-size: .9rem; cursor: pointer; font-family: inherit; transition: all .2s;
+    }
+    .btn-notif:hover { border-color: var(--primary); color: var(--text); }
+    .notif-badge {
+      position: absolute; top: -.3rem; right: -.3rem;
+      background: var(--red); color: #fff; border-radius: 99px;
+      font-size: .58rem; font-weight: 800; padding: .1rem .32rem;
+      min-width: 16px; text-align: center; display: none;
+    }
+    .notif-panel {
+      display: none; position: absolute; top: 68px; right: 1rem;
+      width: 320px; background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.35);
+      z-index: 500; overflow: hidden;
+    }
+    .notif-panel.open { display: block; }
+    .notif-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .85rem 1rem; border-bottom: 1px solid var(--border);
+      font-size: .82rem; font-weight: 700;
+    }
+    .notif-list { max-height: 280px; overflow-y: auto; }
+    .notif-item {
+      display: flex; align-items: flex-start; gap: .6rem;
+      padding: .7rem 1rem; border-bottom: 1px solid rgba(255,255,255,.04);
+      font-size: .78rem; cursor: pointer; transition: background .15s;
+    }
+    .notif-item:hover { background: rgba(255,255,255,.03); }
+    .notif-item.unread { background: rgba(14,165,233,.05); }
+    .notif-dot { width:7px; height:7px; border-radius:50%; background:var(--primary); flex-shrink:0; margin-top:.3rem; }
+    .notif-item-text { flex:1; color:var(--text); line-height:1.4; }
+    .notif-item-time { font-size:.7rem; color:var(--muted); white-space:nowrap; }
+    .notif-empty { padding:1.5rem; text-align:center; color:var(--muted); font-size:.82rem; }
+    .btn-mark-all {
+      background: none; border: none; color: var(--primary); font-size:.72rem;
+      font-weight:700; cursor:pointer; font-family:inherit; padding:0;
+    }
+
+    /* ── SESSION TIMER ── */
+    .session-bar {
+      display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 800;
+      background: rgba(245,158,11,.95); color: #000; padding: .65rem 1.5rem;
+      font-size: .85rem; font-weight: 700; text-align: center;
+      backdrop-filter: blur(4px);
+    }
+    .session-bar.show { display: flex; align-items: center; justify-content: center; gap: 1rem; }
+    .btn-renew {
+      background: #000; color: #f59e0b; border: none; border-radius: 6px;
+      padding: .3rem .85rem; font-size: .8rem; font-weight: 800;
+      cursor: pointer; font-family: inherit;
+    }
+
+    /* ── ALERT FILTERS ── */
+    .alert-filters {
+      display: flex; gap: .5rem; flex-wrap: wrap;
+      padding: .75rem 1.25rem; border-bottom: 1px solid var(--border);
+    }
+    .alert-filter-btn {
+      padding: .28rem .75rem; border-radius: 99px; font-size: .72rem; font-weight: 700;
+      border: 1px solid var(--border); background: var(--card); color: var(--muted);
+      cursor: pointer; transition: all .15s; font-family: inherit; letter-spacing: .03em;
+    }
+    .alert-filter-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(14,165,233,.12); }
+    .alert-filter-btn.f-critical.active { border-color: var(--red); color: #f87171; background: rgba(239,68,68,.12); }
+    .alert-filter-btn.f-high.active    { border-color: var(--yellow); color: #fbbf24; background: rgba(245,158,11,.12); }
+    .alert-filter-btn.f-medium.active  { border-color: #facc15; color: #fde047; background: rgba(250,204,21,.12); }
+
+    /* ── AUDIT LOG ── */
+    .audit-item {
+      display: flex; align-items: flex-start; gap: .75rem;
+      padding: .6rem 1rem; border-bottom: 1px solid rgba(255,255,255,.04);
+      font-size: .78rem;
+    }
+    .audit-ts { font-family:'JetBrains Mono',monospace; color:var(--muted); font-size:.72rem; white-space:nowrap; }
+    .audit-action { color:var(--primary); font-weight:700; min-width:70px; }
+    .audit-detail { color:var(--text); flex:1; line-height:1.4; }
+    .audit-list { max-height: 240px; overflow-y: auto; }
+
+    /* ── PRICING ── */
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem; margin-top: 2rem;
+    }
+    .pricing-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 2rem; position: relative;
+      transition: border-color .2s, transform .2s;
+    }
+    .pricing-card:hover { transform: translateY(-4px); border-color: rgba(14,165,233,.4); }
+    .pricing-card.popular {
+      border-color: var(--primary);
+      background: rgba(14,165,233,.05);
+    }
+    .pricing-popular-badge {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--primary); color: #fff; padding: .2rem .8rem;
+      border-radius: 99px; font-size: .7rem; font-weight: 800; white-space: nowrap;
+      letter-spacing: .04em;
+    }
+    .pricing-plan { font-size: .75rem; font-weight: 700; color: var(--muted);
+      letter-spacing: .1em; text-transform: uppercase; margin-bottom: .5rem; }
+    .pricing-price {
+      font-size: 2.8rem; font-weight: 900; letter-spacing: -.04em;
+      color: var(--text); line-height: 1; margin-bottom: .25rem;
+    }
+    .pricing-price span { font-size: 1.1rem; font-weight: 600; color: var(--muted); }
+    .pricing-desc { font-size: .82rem; color: var(--muted); margin-bottom: 1.5rem; }
+    .pricing-features { list-style: none; display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1.75rem; }
+    .pricing-features li { font-size: .82rem; display: flex; align-items: center; gap: .6rem; }
+    .pricing-features li::before { content: '✓'; color: var(--green); font-weight: 800; flex-shrink: 0; }
+    .pricing-features li.no::before { content: '✗'; color: var(--muted); }
+    .pricing-features li.no { color: var(--muted); }
+    .btn-pricing {
+      width: 100%; padding: .7rem; border-radius: 8px; font-weight: 700;
+      font-size: .9rem; cursor: pointer; font-family: inherit; border: 1px solid var(--border);
+      background: var(--card); color: var(--text); transition: all .2s;
+    }
+    .btn-pricing:hover { border-color: var(--primary); background: rgba(14,165,233,.08); }
+    .pricing-card.popular .btn-pricing {
+      background: var(--primary); color: #fff; border-color: var(--primary);
+    }
+    .pricing-card.popular .btn-pricing:hover { background: var(--primary2); }
+
+    /* ── CHARTS ── */
+    .charts-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;
+    }
+    @media (max-width: 700px) { .charts-row { grid-template-columns: 1fr; } }
+    .chart-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.25rem;
+    }
+    .chart-card h4 { font-size: .82rem; font-weight: 700; color: var(--muted);
+      letter-spacing: .04em; text-transform: uppercase; margin-bottom: 1rem; }
   </style>
 </head>
 <body>
@@ -708,6 +900,16 @@
     <a href="#api"      class="hide-mobile">API</a>
     <a href="#demo"     class="hide-mobile">Demo</a>
     <a href="#stack"    class="hide-mobile">Stack</a>
+    <div class="nav-status hide-mobile" id="navStatus">
+      <div class="nav-status-dot"></div>
+      <span id="navStatusText">Operativo</span>
+    </div>
+    <button class="btn-lang" id="btnLang" onclick="toggleLang()" title="Toggle language">EN</button>
+    <button class="btn-theme" id="btnTheme" onclick="toggleTheme()" title="Toggle theme">☀</button>
+    <!-- Notification bell -->
+    <div style="position:relative">
+      <button class="btn-notif" id="btnNotif" onclick="toggleNotifPanel()" title="Notificaciones">🔔<span class="notif-badge" id="notifBadge">0</span></button>
+    </div>
     <a href="https://github.com/j3in3r/jeiguard-ai" target="_blank" class="btn-nav hide-mobile">
       ⭐ GitHub
     </a>
@@ -731,6 +933,23 @@
     </div>
   </div>
 </nav>
+
+<!-- Notification panel (outside nav to avoid stacking context issues) -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-head">
+    <span>🔔 Notificaciones</span>
+    <button class="btn-mark-all" onclick="markAllRead()">Marcar todas leídas</button>
+  </div>
+  <div class="notif-list" id="notifList">
+    <div class="notif-empty" id="notifEmpty">Sin notificaciones nuevas</div>
+  </div>
+</div>
+
+<!-- Session expiry warning bar -->
+<div class="session-bar" id="sessionBar">
+  <span id="sessionBarText">⚠ Tu sesión expira en 2 minutos. ¿Deseas continuar?</span>
+  <button class="btn-renew" onclick="renewSession()">Continuar sesión</button>
+</div>
 
 <!-- ── HERO ──────────────────────────────────────────────────────────── -->
 <section class="hero">
@@ -1113,6 +1332,61 @@
   </div>
 </section>
 
+<!-- ── PRICING ───────────────────────────────────────────────────────── -->
+<section id="pricing" style="background:var(--bg2)">
+  <div class="section-tag">Precios</div>
+  <h2>Planes para cada equipo</h2>
+  <p class="section-sub">Desde startups hasta Fortune 500. Escala con tu organización sin cambiar de plataforma.</p>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-plan">Starter</div>
+      <div class="pricing-price">$0<span>/mes</span></div>
+      <div class="pricing-desc">Para proyectos personales y demos técnicas</div>
+      <ul class="pricing-features">
+        <li>1 tenant · hasta 5 usuarios</li>
+        <li>WebSocket alertas en tiempo real</li>
+        <li>API REST 40+ endpoints</li>
+        <li>Compliance básico (NIST)</li>
+        <li class="no">Aprendizaje federado</li>
+        <li class="no">LLM Analyst (Claude API)</li>
+        <li class="no">Soporte SLA</li>
+      </ul>
+      <button class="btn-pricing" onclick="openLogin()">Comenzar gratis →</button>
+    </div>
+    <div class="pricing-card popular">
+      <div class="pricing-popular-badge">MÁS POPULAR</div>
+      <div class="pricing-plan">Professional</div>
+      <div class="pricing-price">$299<span>/mes</span></div>
+      <div class="pricing-desc">Para equipos de seguridad en crecimiento</div>
+      <ul class="pricing-features">
+        <li>5 tenants · hasta 50 usuarios</li>
+        <li>WebSocket + SOAR automatizado</li>
+        <li>SIEM Correlator · MITRE ATT&CK</li>
+        <li>Compliance completo (NIST+SOC2+ISO)</li>
+        <li>LLM Analyst (Claude API) incluido</li>
+        <li>Model Registry · A/B testing</li>
+        <li class="no">Soporte 24/7 SLA garantizado</li>
+      </ul>
+      <button class="btn-pricing" onclick="openLogin()">Solicitar demo →</button>
+    </div>
+    <div class="pricing-card">
+      <div class="pricing-plan">Enterprise</div>
+      <div class="pricing-price">Custom<span> /año</span></div>
+      <div class="pricing-desc">Para organizaciones con requisitos regulatorios</div>
+      <ul class="pricing-features">
+        <li>Tenants ilimitados · usuarios ilimitados</li>
+        <li>Aprendizaje federado multi-organización</li>
+        <li>Multi-cloud: AWS + Azure + GCP</li>
+        <li>OpenTelemetry · Jaeger Tracing</li>
+        <li>Digital Twin interactivo D3.js</li>
+        <li>Soporte 24/7 con SLA &lt; 4h</li>
+        <li>Deployment on-premise disponible</li>
+      </ul>
+      <button class="btn-pricing" onclick="openLogin()">Contactar ventas →</button>
+    </div>
+  </div>
+</section>
+
 <!-- ── AUTHOR ────────────────────────────────────────────────────────── -->
 <section class="author-section">
   <div class="author-inner">
@@ -1194,6 +1468,12 @@
     <div class="dash-table-head">
       <span><span class="dash-live-dot"></span>Alertas recientes</span>
       <span style="font-size:.75rem;color:var(--muted);font-weight:400">Tiempo real</span>
+    </div>
+    <div class="alert-filters">
+      <button class="alert-filter-btn active"    data-filter="ALL"      onclick="setAlertFilter('ALL',this)">Todos</button>
+      <button class="alert-filter-btn f-critical" data-filter="CRITICAL" onclick="setAlertFilter('CRITICAL',this)">● CRITICAL</button>
+      <button class="alert-filter-btn f-high"     data-filter="HIGH"     onclick="setAlertFilter('HIGH',this)">● HIGH</button>
+      <button class="alert-filter-btn f-medium"   data-filter="MEDIUM"   onclick="setAlertFilter('MEDIUM',this)">● MEDIUM</button>
     </div>
     <table><thead><tr>
       <th>Hora</th><th>Nivel</th><th>Categoría</th><th>IP Origen</th><th>Confianza</th><th>MITRE</th>
@@ -1724,8 +2004,34 @@ function showDashboard(username, u) {
     <button class="dash-btn" onclick="openCVEs()">🔍 Consultar CVEs</button>`;
   const adminActions = `
     <button class="dash-btn dash-btn-accent" onclick="openTenantConfig()">⚙ Configurar Tenant</button>
-    <button class="dash-btn dash-btn-accent" onclick="openCreateUser()">👥 Nuevo Usuario</button>`;
+    <button class="dash-btn dash-btn-accent" onclick="openCreateUser()">👥 Nuevo Usuario</button>
+    <button class="dash-btn" onclick="exportUsersCSV()">⬇ Exportar CSV</button>`;
   actionsEl.innerHTML = commonActions + (u.role === 'admin' ? adminActions : '');
+
+  // Admin-only: charts + audit log panels
+  if (u.role === 'admin') {
+    const panelsEl2 = document.getElementById('dashRolePanels');
+    panelsEl2.insertAdjacentHTML('beforeend', `
+      <div class="charts-row">
+        <div class="chart-card">
+          <h4>Ataques por hora (últimas 8h)</h4>
+          <canvas id="chartBar" height="160"></canvas>
+        </div>
+        <div class="chart-card">
+          <h4>Distribución por categoría</h4>
+          <canvas id="chartDonut" height="160"></canvas>
+        </div>
+      </div>
+      <div class="dash-table-wrap" style="margin-bottom:1rem">
+        <div class="dash-table-head">
+          <span>🗒 Registro de Auditoría</span>
+          <span style="font-size:.75rem;color:var(--muted);font-weight:400">Solo Admin</span>
+        </div>
+        <div class="audit-list" id="auditList"></div>
+      </div>`);
+    setTimeout(initCharts, 100);
+    renderAuditLog();
+  }
 
   dash.scrollIntoView({ behavior: 'smooth' });
 
@@ -1741,6 +2047,9 @@ function showDashboard(username, u) {
   // Live alerts table
   fillDashTable();
   setInterval(addDashRow, 4000);
+
+  initNotifications();
+  initSessionTimer();
 }
 
 // ── In-memory state (simulates DB / API responses) ────────────────────
@@ -1835,6 +2144,7 @@ function saveCreateUser() {
   renderUsersTable();
   document.getElementById('createUserModal').classList.remove('open');
   showToast('POST','/api/v1/users','201');
+  logAudit('CREATE', 'Usuario creado: ' + id + ' (' + role + ')');
 }
 
 function openEditUser(userId) {
@@ -1859,6 +2169,7 @@ function saveEditUser() {
   renderUsersTable();
   document.getElementById('editUserModal').classList.remove('open');
   showToast('PATCH','/api/v1/users/' + id,'200');
+  logAudit('UPDATE', 'Usuario editado: ' + id + ' → role=' + role + ', status=' + status);
 }
 
 function toggleUserStatus(userId) {
@@ -1867,12 +2178,14 @@ function toggleUserStatus(userId) {
   u.status = u.status === 'activo' ? 'inactivo' : 'activo';
   renderUsersTable();
   showToast('PATCH','/api/v1/users/' + userId + '/status','200');
+  logAudit('UPDATE', 'Estado cambiado: ' + userId + ' → ' + u.status);
 }
 
 function deleteUser(userId) {
   DB_USERS = DB_USERS.filter(u => u.id !== userId);
   renderUsersTable();
   showToast('DELETE','/api/v1/users/' + userId,'204');
+  logAudit('DELETE', 'Usuario eliminado: ' + userId);
 }
 
 // ── Model promotion ──────────────────────────────────────────────────
@@ -1884,6 +2197,7 @@ function promoteModel(modelId) {
   challenger.status = 'champion';
   renderModelsTable();
   showToast('POST','/api/v1/models/' + modelId + '/promote','200');
+  logAudit('PROMOTE', 'Modelo promovido a champion: ' + modelId);
 }
 
 // ── Tenant config ────────────────────────────────────────────────────
@@ -1906,6 +2220,7 @@ function saveTenantConfig() {
   TENANT_CFG.ipAllowlist  = document.getElementById('tcIPAllow').value;
   document.getElementById('tenantModal').classList.remove('open');
   showToast('PATCH','/api/v1/tenants/' + TENANT_CFG.name,'200');
+  logAudit('UPDATE', 'Tenant config guardada: plan=' + TENANT_CFG.plan + ', maxUsers=' + TENANT_CFG.maxUsers);
 }
 
 // ── Toast notifications ──────────────────────────────────────────────
@@ -1944,6 +2259,7 @@ const DASH_ATTACKS = [
   { cat:'Backdoor',    lvl:'CRITICAL', mitre:'T1543', ips:['172.16.0.15','10.200.1.4'] },
 ];
 const PILL_CLASS = { CRITICAL:'pill-c', HIGH:'pill-h', MEDIUM:'pill-m' };
+let _alertFilter = 'ALL';
 
 function makeRow(a) {
   const ip   = a.ips[Math.floor(Math.random()*a.ips.length)];
@@ -1961,14 +2277,24 @@ function makeRow(a) {
 
 function fillDashTable() {
   const tbody = document.getElementById('dashTableBody');
+  if (!tbody) return;
   tbody.innerHTML = '';
-  const shuffled = [...DASH_ATTACKS].sort(()=>Math.random()-.5).slice(0,5);
+  const pool = _alertFilter === 'ALL'
+    ? DASH_ATTACKS
+    : DASH_ATTACKS.filter(a => a.lvl === _alertFilter);
+  if (pool.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:1rem">Sin alertas para este filtro</td></tr>'; return; }
+  const shuffled = [...pool].sort(()=>Math.random()-.5).slice(0,5);
   shuffled.forEach(a => tbody.insertAdjacentHTML('beforeend', makeRow(a)));
 }
 
 function addDashRow() {
   const tbody = document.getElementById('dashTableBody');
-  const a = DASH_ATTACKS[Math.floor(Math.random()*DASH_ATTACKS.length)];
+  if (!tbody) return;
+  const pool = _alertFilter === 'ALL'
+    ? DASH_ATTACKS
+    : DASH_ATTACKS.filter(a => a.lvl === _alertFilter);
+  if (pool.length === 0) return;
+  const a = pool[Math.floor(Math.random()*pool.length)];
   tbody.insertAdjacentHTML('afterbegin', makeRow(a));
   if (tbody.children.length > 8) tbody.removeChild(tbody.lastChild);
 }
@@ -2110,10 +2436,271 @@ function openCVEs() {
 }
 
 function logout() {
+  clearSessionTimer();
   document.getElementById('navUser').style.display = 'none';
   document.getElementById('btnOpenLogin').style.display = '';
   document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('sessionBar').classList.remove('show');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Alert filter ─────────────────────────────────────────────────────────
+let _alertFilter = 'ALL';
+function setAlertFilter(level, btn) {
+  _alertFilter = level;
+  document.querySelectorAll('.alert-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  fillDashTable();
+}
+
+// ── Theme toggle ─────────────────────────────────────────────────────────
+let _darkMode = true;
+function toggleTheme() {
+  _darkMode = !_darkMode;
+  document.body.classList.toggle('light', !_darkMode);
+  document.getElementById('btnTheme').textContent = _darkMode ? '☀' : '🌙';
+}
+
+// ── Language toggle (i18n) ───────────────────────────────────────────────
+const I18N = {
+  ES: {
+    langBtn: 'EN', heroTitle: 'Detección de\nIntrusos con IA',
+    heroSub: 'Sistema enterprise-grade para detectar ataques en tiempo real. CNN-1D + Random Forest. Multi-tenant. Multi-cloud. WebSocket streaming.',
+    login: '🔐 Iniciar sesión', statusText: 'Operativo',
+    featuresLink: 'Funcionalidades',
+  },
+  EN: {
+    langBtn: 'ES', heroTitle: 'AI-Powered\nIntrusion Detection',
+    heroSub: 'Enterprise-grade system to detect attacks in real time. CNN-1D + Random Forest. Multi-tenant. Multi-cloud. WebSocket streaming.',
+    login: '🔐 Sign in', statusText: 'Operational',
+    featuresLink: 'Features',
+  }
+};
+let _lang = 'ES';
+function toggleLang() {
+  _lang = _lang === 'ES' ? 'EN' : 'ES';
+  const t = I18N[_lang];
+  document.getElementById('btnLang').textContent = t.langBtn;
+  document.getElementById('navStatusText').textContent = t.statusText;
+  const loginBtn = document.getElementById('btnOpenLogin');
+  if (loginBtn) loginBtn.textContent = t.login;
+  document.documentElement.lang = _lang.toLowerCase();
+}
+
+// ── Notifications ────────────────────────────────────────────────────────
+const NOTIF_TEMPLATES = [
+  { text: 'Alerta CRITICAL: DoS_DDoS detectado desde 192.168.1.45', ts: 'Ahora' },
+  { text: 'Nuevo CVE crítico: CVE-2024-3400 (CVSS 10.0)', ts: 'Hace 2m' },
+  { text: 'IP 203.0.113.55 bloqueada por SOAR automáticamente', ts: 'Hace 5m' },
+  { text: 'Modelo CNN1D alcanzó 97.4% accuracy en último test', ts: 'Hace 12m' },
+  { text: 'Reporte PDF generado y listo para descarga', ts: 'Hace 18m' },
+];
+let _notifItems = [];
+let _notifPanelOpen = false;
+
+function initNotifications() {
+  _notifItems = NOTIF_TEMPLATES.map((n, i) => ({ ...n, id: i, read: false }));
+  renderNotifPanel();
+  updateNotifBadge();
+  // Add a new notification every 60s while logged in
+  _notifInterval = setInterval(() => {
+    const idx = Math.floor(Math.random() * NOTIF_TEMPLATES.length);
+    _notifItems.unshift({ ...NOTIF_TEMPLATES[idx], id: Date.now(), read: false, ts: 'Ahora' });
+    if (_notifItems.length > 20) _notifItems.pop();
+    renderNotifPanel();
+    updateNotifBadge();
+  }, 60000);
+}
+
+function renderNotifPanel() {
+  const list = document.getElementById('notifList');
+  const empty = document.getElementById('notifEmpty');
+  if (!list) return;
+  if (_notifItems.length === 0) { empty.style.display = ''; list.innerHTML = ''; list.appendChild(empty); return; }
+  empty.style.display = 'none';
+  list.innerHTML = _notifItems.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}" onclick="readNotif(${n.id})">
+      ${!n.read ? '<div class="notif-dot"></div>' : '<div style="width:7px;flex-shrink:0"></div>'}
+      <span class="notif-item-text">${n.text}</span>
+      <span class="notif-item-time">${n.ts}</span>
+    </div>`).join('');
+}
+
+function updateNotifBadge() {
+  const count = _notifItems.filter(n => !n.read).length;
+  const badge = document.getElementById('notifBadge');
+  if (!badge) return;
+  badge.textContent = count;
+  badge.style.display = count > 0 ? 'block' : 'none';
+}
+
+function readNotif(id) {
+  const n = _notifItems.find(x => x.id === id);
+  if (n) n.read = true;
+  renderNotifPanel();
+  updateNotifBadge();
+}
+
+function markAllRead() {
+  _notifItems.forEach(n => { n.read = true; });
+  renderNotifPanel();
+  updateNotifBadge();
+}
+
+function toggleNotifPanel() {
+  _notifPanelOpen = !_notifPanelOpen;
+  document.getElementById('notifPanel').classList.toggle('open', _notifPanelOpen);
+}
+
+// close notification panel when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#notifPanel') && !e.target.closest('#btnNotif')) {
+    _notifPanelOpen = false;
+    const p = document.getElementById('notifPanel');
+    if (p) p.classList.remove('open');
+  }
+});
+
+let _notifInterval = null;
+
+// ── Session timer ────────────────────────────────────────────────────────
+let _sessionTimeout = null;
+let _sessionWarning = null;
+const SESSION_DURATION = 15 * 60 * 1000; // 15 min
+const SESSION_WARN     = 13 * 60 * 1000; // warn at 13 min
+
+function initSessionTimer() {
+  clearSessionTimer();
+  _sessionWarning = setTimeout(() => {
+    const bar = document.getElementById('sessionBar');
+    if (bar) bar.classList.add('show');
+    updateSessionCountdown(2 * 60);
+  }, SESSION_WARN);
+  _sessionTimeout = setTimeout(() => {
+    logout();
+    alert('Sesión expirada. Por favor inicia sesión nuevamente.');
+  }, SESSION_DURATION);
+}
+
+let _countdownInterval = null;
+function updateSessionCountdown(secs) {
+  const el = document.getElementById('sessionBarText');
+  if (_countdownInterval) clearInterval(_countdownInterval);
+  let remaining = secs;
+  const tick = () => {
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    if (el) el.textContent = `⚠ Tu sesión expira en ${m}:${String(s).padStart(2,'0')}. ¿Deseas continuar?`;
+    if (remaining <= 0) clearInterval(_countdownInterval);
+    remaining--;
+  };
+  tick();
+  _countdownInterval = setInterval(tick, 1000);
+}
+
+function renewSession() {
+  document.getElementById('sessionBar').classList.remove('show');
+  if (_countdownInterval) clearInterval(_countdownInterval);
+  initSessionTimer();
+  showToast('POST', '/api/v1/auth/refresh', '200');
+}
+
+function clearSessionTimer() {
+  if (_sessionTimeout) { clearTimeout(_sessionTimeout); _sessionTimeout = null; }
+  if (_sessionWarning) { clearTimeout(_sessionWarning); _sessionWarning = null; }
+  if (_countdownInterval) { clearInterval(_countdownInterval); _countdownInterval = null; }
+  if (_notifInterval) { clearInterval(_notifInterval); _notifInterval = null; }
+}
+
+// ── Audit log ────────────────────────────────────────────────────────────
+let AUDIT_LOG = [
+  { ts: new Date(Date.now()-900000).toLocaleTimeString('es-CO',{hour12:false}), action:'LOGIN',  detail:'admin inició sesión desde 192.168.1.1' },
+  { ts: new Date(Date.now()-600000).toLocaleTimeString('es-CO',{hour12:false}), action:'READ',   detail:'Compliance assessment ejecutado' },
+  { ts: new Date(Date.now()-300000).toLocaleTimeString('es-CO',{hour12:false}), action:'UPDATE', detail:'Tenant config actualizada: plan=Enterprise' },
+];
+
+function logAudit(action, detail) {
+  AUDIT_LOG.unshift({ ts: new Date().toLocaleTimeString('es-CO',{hour12:false}), action, detail });
+  if (AUDIT_LOG.length > 50) AUDIT_LOG.pop();
+  renderAuditLog();
+}
+
+function renderAuditLog() {
+  const el = document.getElementById('auditList');
+  if (!el) return;
+  el.innerHTML = AUDIT_LOG.map(e => `
+    <div class="audit-item">
+      <span class="audit-ts">${e.ts}</span>
+      <span class="audit-action">${e.action}</span>
+      <span class="audit-detail">${e.detail}</span>
+    </div>`).join('');
+}
+
+// ── CSV Export ───────────────────────────────────────────────────────────
+function exportUsersCSV() {
+  const header = 'id,name,role,status,tenant';
+  const rows = DB_USERS.map(u => `${u.id},${u.name},${u.role},${u.status},${u.tenant}`);
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'jeiguard_users_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('GET', '/api/v1/users/export.csv', '200');
+  logAudit('EXPORT', 'Usuarios exportados a CSV (' + DB_USERS.length + ' registros)');
+}
+
+// ── Charts (Chart.js) ─────────────────────────────────────────────────────
+let _chartBar = null;
+let _chartDonut = null;
+function initCharts() {
+  const barCtx = document.getElementById('chartBar');
+  const donutCtx = document.getElementById('chartDonut');
+  if (!barCtx || !donutCtx || typeof Chart === 'undefined') return;
+  if (_chartBar) { _chartBar.destroy(); _chartBar = null; }
+  if (_chartDonut) { _chartDonut.destroy(); _chartDonut = null; }
+  const hours = ['16h','17h','18h','19h','20h','21h','22h','23h'];
+  const barData = [4,7,12,9,15,22,18,11];
+  _chartBar = new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: hours,
+      datasets: [{
+        label: 'Ataques/hora',
+        data: barData,
+        backgroundColor: 'rgba(14,165,233,.6)',
+        borderColor: 'rgba(14,165,233,1)',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,.05)' } },
+        y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,.05)' } }
+      }
+    }
+  });
+  _chartDonut = new Chart(donutCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['DoS/DDoS','Web Exploit','Probe/Scan','R2L','Backdoor'],
+      datasets: [{
+        data: [38,26,19,11,6],
+        backgroundColor: ['#ef4444','#f59e0b','#facc15','#0ea5e9','#6366f1'],
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 10 }, boxWidth: 12, padding: 8 } }
+      }
+    }
+  });
 }
 </script>
 

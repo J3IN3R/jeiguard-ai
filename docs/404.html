@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>404 — JeiGuard AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0A1628; --bg2: #0F1E35; --primary: #0ea5e9;
+      --accent: #6366f1; --text: #e2e8f0; --muted: #64748b;
+      --border: rgba(255,255,255,.08);
+    }
+    body {
+      font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 2rem;
+    }
+    .code {
+      font-family: 'JetBrains Mono', monospace; font-size: clamp(5rem, 18vw, 9rem);
+      font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 1.25rem;
+    }
+    h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: .6rem; }
+    p  { color: var(--muted); max-width: 400px; margin: 0 auto 2rem; line-height: 1.6; }
+    .btn {
+      display: inline-block;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: #fff; text-decoration: none; font-weight: 700;
+      padding: .75rem 2rem; border-radius: 10px; font-size: .9rem;
+      transition: opacity .2s;
+    }
+    .btn:hover { opacity: .85; }
+    .mono {
+      margin-top: 2.5rem; font-size: .72rem; color: var(--muted);
+      font-family: 'JetBrains Mono', monospace; letter-spacing: .04em;
+    }
+    .grid {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: linear-gradient(rgba(14,165,233,.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(14,165,233,.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .content { position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="content">
+    <div class="code">404</div>
+    <h1>Endpoint no encontrado</h1>
+    <p>El recurso que buscas no existe en JeiGuard AI. Puede que haya sido movido, eliminado o nunca existió.</p>
+    <a class="btn" href="/jeiguard-ai/">← Volver al inicio</a>
+    <div class="mono">JeiGuard AI v2.0.0 &nbsp;·&nbsp; Enterprise IDS Platform &nbsp;·&nbsp; HTTP 404</div>
+  </div>
+</body>
+</html>

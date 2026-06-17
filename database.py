@@ -45,7 +45,12 @@ _raw_db_url: str = os.getenv(
     "postgresql+asyncpg://jeiguard:jeiguard2026@localhost:5432/jeiguard_ai",
 )
 # Railway entrega postgresql:// — asyncpg necesita postgresql+asyncpg://
-DATABASE_URL: str = _raw_db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+# También eliminar sslmode del query string (asyncpg lo maneja en connect_args)
+DATABASE_URL: str = (
+    _raw_db_url
+    .replace("postgresql://", "postgresql+asyncpg://", 1)
+    .split("?")[0]
+)
 
 # ── Base ORM ──────────────────────────────────────────────────────────────────
 
@@ -460,6 +465,11 @@ class ModelRegistry(Base):
 
 # ── Motor async y fábrica de sesiones ────────────────────────────────────────
 
+import ssl as _ssl_mod
+_ssl_ctx = _ssl_mod.create_default_context()
+_ssl_ctx.check_hostname = False
+_ssl_ctx.verify_mode = _ssl_mod.CERT_NONE
+
 _engine = create_async_engine(
     DATABASE_URL,
     echo=False,
@@ -467,6 +477,7 @@ _engine = create_async_engine(
     max_overflow=40,
     pool_pre_ping=True,
     pool_recycle=3600,
+    connect_args={"ssl": _ssl_ctx},
 )
 
 AsyncSessionLocal = async_sessionmaker(

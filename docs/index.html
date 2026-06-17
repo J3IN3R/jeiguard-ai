@@ -1744,7 +1744,7 @@ function showDashboard(username, u) {
 }
 
 // ── In-memory state (simulates DB / API responses) ────────────────────
-let USERS = [
+let DB_USERS = [
   { id:'admin',        name:'Jeiner Tello', role:'admin',    status:'activo',   tenant:'acme-corp' },
   { id:'analyst',      name:'Ana García',   role:'analyst',  status:'activo',   tenant:'acme-corp' },
   { id:'viewer_01',    name:'Carlos Ruiz',  role:'viewer',   status:'activo',   tenant:'acme-corp' },
@@ -1777,7 +1777,7 @@ const STATUS_PILL = {
 function renderUsersTable() {
   const tbody = document.getElementById('usersTbody');
   if (!tbody) return;
-  tbody.innerHTML = USERS.map(u => `<tr>
+  tbody.innerHTML = DB_USERS.map(u => `<tr>
     <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">${u.id}</td>
     <td>${u.name}</td>
     <td>${ROLE_PILL[u.role] || u.role}</td>
@@ -1788,9 +1788,8 @@ function renderUsersTable() {
       ${u.id !== 'admin' ? `<button class="btn-role-action" style="background:rgba(239,68,68,.08);color:#f87171" onclick="deleteUser('${u.id}')">Eliminar</button>` : ''}
     </td>
   </tr>`).join('');
-  // update users KPI counter
   const el = document.getElementById('dcUsers');
-  if (el) el.textContent = USERS.filter(u => u.status === 'activo').length;
+  if (el) el.textContent = DB_USERS.filter(u => u.status === 'activo').length;
 }
 
 function renderModelsTable() {
@@ -1831,15 +1830,15 @@ function saveCreateUser() {
   const role   = document.getElementById('cuRole').value;
   const status = document.getElementById('cuStatus').value;
   if (!id || !name) { showToast('ERROR','Todos los campos son requeridos','400'); return; }
-  if (USERS.find(u => u.id === id)) { showToast('ERROR','Usuario ya existe','409'); return; }
-  USERS.push({ id, name, role, status, tenant: 'acme-corp' });
+  if (DB_USERS.find(u => u.id === id)) { showToast('ERROR','Usuario ya existe','409'); return; }
+  DB_USERS.push({ id, name, role, status, tenant: 'acme-corp' });
   renderUsersTable();
   document.getElementById('createUserModal').classList.remove('open');
   showToast('POST','/api/v1/users','201');
 }
 
 function openEditUser(userId) {
-  const u = USERS.find(x => x.id === userId);
+  const u = DB_USERS.find(x => x.id === userId);
   if (!u) return;
   document.getElementById('euId').value     = u.id;
   document.getElementById('euName').value   = u.name;
@@ -1854,7 +1853,7 @@ function saveEditUser() {
   const role   = document.getElementById('euRole').value;
   const status = document.getElementById('euStatus').value;
   if (!name) { showToast('ERROR','El nombre es requerido','400'); return; }
-  const u = USERS.find(x => x.id === id);
+  const u = DB_USERS.find(x => x.id === id);
   if (!u) return;
   u.name = name; u.role = role; u.status = status;
   renderUsersTable();
@@ -1863,7 +1862,7 @@ function saveEditUser() {
 }
 
 function toggleUserStatus(userId) {
-  const u = USERS.find(x => x.id === userId);
+  const u = DB_USERS.find(x => x.id === userId);
   if (!u) return;
   u.status = u.status === 'activo' ? 'inactivo' : 'activo';
   renderUsersTable();
@@ -1871,7 +1870,7 @@ function toggleUserStatus(userId) {
 }
 
 function deleteUser(userId) {
-  USERS = USERS.filter(u => u.id !== userId);
+  DB_USERS = DB_USERS.filter(u => u.id !== userId);
   renderUsersTable();
   showToast('DELETE','/api/v1/users/' + userId,'204');
 }

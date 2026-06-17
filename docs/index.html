@@ -2445,7 +2445,6 @@ function logout() {
 }
 
 // ── Alert filter ─────────────────────────────────────────────────────────
-let _alertFilter = 'ALL';
 function setAlertFilter(level, btn) {
   _alertFilter = level;
   document.querySelectorAll('.alert-filter-btn').forEach(b => b.classList.remove('active'));

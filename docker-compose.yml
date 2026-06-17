@@ -233,3 +233,33 @@ services:
       PGADMIN_LISTEN_PORT:      5050
     ports:
       - "5050:5050"
+
+  # ── JeiGuard AI API — FastAPI principal ──────────────────────────────────
+  api:
+    build: .
+    container_name: ids-api
+    hostname: api
+    networks: [ids_network]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      DATABASE_URL:               postgresql+asyncpg://jeiguard:jeiguard2026@postgres:5432/jeiguard_ai
+      REDIS_URL:                  redis://:jeiguard2026@redis:6379/0
+      JWT_SECRET_KEY:             jeiguard-secret-key-2026-enterprise-256bits
+      JWT_ALGORITHM:              HS256
+      KAFKA_BOOTSTRAP_SERVERS:    kafka:29092
+      MLFLOW_TRACKING_URI:        http://mlflow:5000
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      OTEL_SERVICE_NAME:          jeiguard-ai
+      REPORTS_DIR:                /app/reports
+      PYTHONUNBUFFERED:           "1"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./reports:/app/reports
+    restart: unless-stopped

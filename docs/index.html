@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JeiGuard AI — Enterprise Intrusion Detection System</title>
+  <meta name="description" content="Sistema de Detección de Intrusiones con IA. CNN-1D + Random Forest. 97.4% accuracy. 15,000 flujos/seg. Multi-cloud." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #080c14;
+      --bg2:       #0d1422;
+      --bg3:       #111827;
+      --border:    rgba(255,255,255,0.07);
+      --primary:   #0ea5e9;
+      --primary2:  #38bdf8;
+      --accent:    #6366f1;
+      --green:     #22c55e;
+      --red:       #ef4444;
+      --yellow:    #f59e0b;
+      --text:      #f1f5f9;
+      --muted:     #64748b;
+      --card:      rgba(255,255,255,0.03);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(1rem, 5vw, 4rem);
+      height: 64px;
+      background: rgba(8,12,20,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: .5rem;
+      font-weight: 800; font-size: 1.1rem; letter-spacing: -.02em;
+    }
+    .nav-logo span { color: var(--primary); }
+    .shield { font-size: 1.4rem; }
+    .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+    .nav-links a {
+      font-size: .875rem; color: var(--muted); font-weight: 500;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .btn-nav {
+      background: var(--primary); color: #fff !important;
+      padding: .4rem 1rem; border-radius: 6px; font-size: .875rem;
+      font-weight: 600; transition: background .2s;
+    }
+    .btn-nav:hover { background: var(--primary2); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 8rem clamp(1rem, 5vw, 4rem) 4rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(14,165,233,.15) 0%, transparent 60%),
+                  radial-gradient(ellipse 40% 40% at 80% 60%, rgba(99,102,241,.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: .4rem;
+      background: rgba(14,165,233,.1); border: 1px solid rgba(14,165,233,.3);
+      color: var(--primary); padding: .3rem .9rem;
+      border-radius: 999px; font-size: .8rem; font-weight: 600;
+      margin-bottom: 1.5rem; letter-spacing: .04em;
+    }
+    .hero h1 {
+      font-size: clamp(2.8rem, 8vw, 6rem);
+      font-weight: 900; letter-spacing: -.04em; line-height: 1.05;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 .grad {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      color: var(--muted); max-width: 620px; margin: 0 auto 2.5rem;
+      font-weight: 400;
+    }
+    .hero-ctas { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--primary); color: #fff;
+      padding: .75rem 1.75rem; border-radius: 8px;
+      font-weight: 700; font-size: .95rem;
+      transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 0 24px rgba(14,165,233,.35);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(14,165,233,.5); }
+    .btn-secondary {
+      background: transparent; color: var(--text);
+      padding: .75rem 1.75rem; border-radius: 8px;
+      font-weight: 600; font-size: .95rem;
+      border: 1px solid var(--border);
+      transition: border-color .2s, background .2s;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .btn-secondary:hover { border-color: var(--primary); background: rgba(14,165,233,.05); }
+
+    /* ── METRICS BAR ── */
+    .metrics-bar {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 0;
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      padding: 0;
+    }
+    .metric-item {
+      flex: 1; min-width: 160px;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 2rem 1rem;
+      border-right: 1px solid var(--border);
+    }
+    .metric-item:last-child { border-right: none; }
+    .metric-val {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 900; letter-spacing: -.03em;
+      color: var(--primary);
+    }
+    .metric-label {
+      font-size: .8rem; color: var(--muted); font-weight: 500;
+      text-align: center; margin-top: .25rem;
+    }
+
+    /* ── SECTIONS ── */
+    section { padding: 5rem clamp(1rem, 5vw, 5rem); }
+    .section-tag {
+      display: inline-block;
+      font-size: .75rem; font-weight: 700; letter-spacing: .1em;
+      color: var(--primary); text-transform: uppercase;
+      margin-bottom: .75rem;
+    }
+    h2 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800; letter-spacing: -.03em; margin-bottom: .75rem;
+    }
+    .section-sub { color: var(--muted); max-width: 560px; margin-bottom: 3rem; }
+
+    /* ── PIPELINE ── */
+    .pipeline-wrap {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 16px; padding: 2.5rem; overflow-x: auto;
+    }
+    .pipeline {
+      display: flex; align-items: center; gap: 0;
+      min-width: 680px;
+    }
+    .pipe-node {
+      flex: 1;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1rem .75rem;
+      text-align: center;
+    }
+    .pipe-node .icon { font-size: 1.6rem; margin-bottom: .4rem; display: block; }
+    .pipe-node .title { font-size: .8rem; font-weight: 700; color: var(--text); }
+    .pipe-node .sub { font-size: .7rem; color: var(--muted); margin-top: .2rem; }
+    .pipe-arrow {
+      color: var(--primary); font-size: 1.2rem; padding: 0 .5rem;
+      flex-shrink: 0;
+    }
+
+    /* ── FEATURE GRID ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .feature-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+      transition: border-color .2s, transform .2s;
+    }
+    .feature-card:hover { border-color: rgba(14,165,233,.4); transform: translateY(-3px); }
+    .feature-num {
+      font-size: .7rem; font-weight: 700; color: var(--primary);
+      letter-spacing: .08em; margin-bottom: .5rem;
+    }
+    .feature-title { font-size: .95rem; font-weight: 700; margin-bottom: .4rem; }
+    .feature-desc { font-size: .82rem; color: var(--muted); line-height: 1.5; }
+    .feature-tag {
+      display: inline-block; margin-top: .75rem;
+      font-size: .7rem; font-weight: 600; padding: .2rem .6rem;
+      border-radius: 4px; background: rgba(14,165,233,.1); color: var(--primary);
+    }
+
+    /* ── GROUP HEADERS ── */
+    .group-header {
+      display: flex; align-items: center; gap: .75rem;
+      margin-bottom: 1.25rem; margin-top: 2.5rem;
+    }
+    .group-header:first-child { margin-top: 0; }
+    .group-label {
+      font-size: .8rem; font-weight: 700; letter-spacing: .06em;
+      color: var(--muted); text-transform: uppercase;
+    }
+    .group-line { flex: 1; height: 1px; background: var(--border); }
+
+    /* ── API DEMO ── */
+    .api-demo {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+    }
+    @media (max-width: 800px) { .api-demo { grid-template-columns: 1fr; } }
+    .endpoint-list { display: flex; flex-direction: column; gap: .5rem; }
+    .ep-item {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .75rem 1rem; border-radius: 8px;
+      background: var(--card); border: 1px solid var(--border);
+      cursor: pointer; transition: border-color .2s;
+    }
+    .ep-item.active { border-color: var(--primary); background: rgba(14,165,233,.05); }
+    .ep-item:hover { border-color: rgba(14,165,233,.3); }
+    .method {
+      font-size: .7rem; font-weight: 700; padding: .2rem .5rem;
+      border-radius: 4px; min-width: 46px; text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .method.post { background: rgba(34,197,94,.15); color: var(--green); }
+    .method.get  { background: rgba(14,165,233,.15); color: var(--primary); }
+    .method.ws   { background: rgba(99,102,241,.15); color: #818cf8; }
+    .ep-path { font-family: 'JetBrains Mono', monospace; font-size: .8rem; color: var(--text); }
+    .ep-desc { font-size: .75rem; color: var(--muted); margin-left: auto; }
+    .code-panel {
+      background: #0a0e17; border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+    }
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .75rem 1rem; background: rgba(255,255,255,.03);
+      border-bottom: 1px solid var(--border);
+    }
+    .code-dots { display: flex; gap: .4rem; }
+    .code-dots span {
+      width: 12px; height: 12px; border-radius: 50%;
+    }
+    .code-dots span:nth-child(1) { background: #ef4444; }
+    .code-dots span:nth-child(2) { background: #f59e0b; }
+    .code-dots span:nth-child(3) { background: #22c55e; }
+    .code-lang { font-size: .75rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+    pre {
+      padding: 1.5rem; overflow-x: auto; font-size: .8rem;
+      line-height: 1.7; font-family: 'JetBrains Mono', monospace;
+    }
+    .kw  { color: #f472b6; }
+    .str { color: #86efac; }
+    .num { color: #fbbf24; }
+    .fn  { color: #60a5fa; }
+    .cm  { color: #475569; font-style: italic; }
+    .key { color: #c4b5fd; }
+    .op  { color: #94a3b8; }
+
+    /* ── WEBSOCKET DEMO ── */
+    .ws-terminal {
+      background: #050810; border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .ws-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .75rem 1rem; background: rgba(255,255,255,.03);
+      border-bottom: 1px solid var(--border);
+    }
+    .ws-status {
+      display: flex; align-items: center; gap: .5rem;
+      font-size: .8rem; font-weight: 600;
+    }
+    .ws-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .3; }
+    }
+    .ws-url { font-size: .75rem; color: var(--muted); }
+    .ws-body { padding: 1rem; height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: .4rem; }
+    .ws-line { font-size: .75rem; line-height: 1.6; }
+    .ws-line .ts    { color: #475569; }
+    .ws-line .lvl-c { color: #ef4444; font-weight: 700; }
+    .ws-line .lvl-h { color: #f59e0b; font-weight: 700; }
+    .ws-line .lvl-m { color: #facc15; font-weight: 700; }
+    .ws-line .lvl-l { color: #22c55e; font-weight: 700; }
+    .ws-line .cat   { color: #c4b5fd; }
+    .ws-line .ip    { color: #60a5fa; }
+    .ws-line .conf  { color: var(--muted); }
+    .ws-controls { padding: .75rem 1rem; border-top: 1px solid var(--border); display: flex; gap: .75rem; }
+    .ws-btn {
+      padding: .35rem .9rem; border-radius: 6px; font-size: .78rem;
+      font-weight: 600; cursor: pointer; border: none;
+      font-family: 'JetBrains Mono', monospace; transition: opacity .2s;
+    }
+    .ws-btn:hover { opacity: .8; }
+    .ws-btn.start { background: var(--green); color: #000; }
+    .ws-btn.stop  { background: var(--red); color: #fff; }
+    .ws-btn.clear { background: var(--bg3); color: var(--muted); border: 1px solid var(--border); }
+
+    /* ── STACK GRID ── */
+    .stack-grid {
+      display: flex; flex-wrap: wrap; gap: .75rem;
+    }
+    .stack-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: .5rem 1rem;
+      font-size: .82rem; font-weight: 600;
+      display: flex; align-items: center; gap: .5rem;
+      transition: border-color .2s;
+    }
+    .stack-item:hover { border-color: rgba(14,165,233,.4); }
+    .stack-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--primary);
+    }
+
+    /* ── CLOUD CARDS ── */
+    .cloud-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem;
+    }
+    .cloud-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.75rem;
+      transition: border-color .2s;
+    }
+    .cloud-card:hover { border-color: rgba(14,165,233,.4); }
+    .cloud-logo { font-size: 2rem; margin-bottom: 1rem; }
+    .cloud-name { font-size: 1.1rem; font-weight: 800; margin-bottom: .25rem; }
+    .cloud-sub { font-size: .82rem; color: var(--muted); margin-bottom: 1rem; }
+    .cloud-list { list-style: none; display: flex; flex-direction: column; gap: .35rem; }
+    .cloud-list li {
+      font-size: .8rem; color: var(--muted);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .cloud-list li::before { content: '→'; color: var(--primary); flex-shrink: 0; }
+
+    /* ── COMPLIANCE ── */
+    .compliance-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;
+    }
+    .comp-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem; text-align: center;
+    }
+    .comp-score {
+      font-size: 2.8rem; font-weight: 900; color: var(--primary);
+      letter-spacing: -.04em;
+    }
+    .comp-name { font-weight: 700; margin: .25rem 0 .4rem; }
+    .comp-sub  { font-size: .78rem; color: var(--muted); }
+    .progress-bar {
+      height: 4px; background: var(--bg3);
+      border-radius: 99px; overflow: hidden; margin-top: 1rem;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 1.2s ease;
+    }
+
+    /* ── AUTHOR CARD ── */
+    .author-section {
+      background: var(--bg2); border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .author-inner {
+      display: flex; gap: 2rem; align-items: center; flex-wrap: wrap;
+    }
+    .author-avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; font-weight: 900; flex-shrink: 0;
+      color: #fff;
+    }
+    .author-info h3 { font-size: 1.2rem; font-weight: 800; margin-bottom: .25rem; }
+    .author-info p { font-size: .85rem; color: var(--muted); }
+    .author-badges { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .75rem; }
+    .author-badge {
+      font-size: .72rem; font-weight: 600; padding: .25rem .65rem;
+      border-radius: 4px; background: rgba(14,165,233,.1);
+      color: var(--primary); border: 1px solid rgba(14,165,233,.2);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--bg);
+      padding: 2rem clamp(1rem, 5vw, 5rem);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+      border-top: 1px solid var(--border);
+      font-size: .82rem; color: var(--muted);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .nav-links .hide-mobile { display: none; }
+      .metric-item { padding: 1.25rem .75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ───────────────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-logo">
+    <span class="shield">🛡️</span>
+    <span>Jei<span>Guard</span> AI</span>
+  </div>
+  <div class="nav-links">
+    <a href="#features" class="hide-mobile">Funcionalidades</a>
+    <a href="#api"      class="hide-mobile">API</a>
+    <a href="#demo"     class="hide-mobile">Demo</a>
+    <a href="#stack"    class="hide-mobile">Stack</a>
+    <a href="https://github.com/j3in3r/jeiguard-ai" target="_blank" class="btn-nav">
+      ⭐ GitHub
+    </a>
+  </div>
+</nav>
+
+<!-- ── HERO ──────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="badge">🔒 Enterprise Intrusion Detection · v2.0.0</div>
+  <h1>
+    Detección de<br/>
+    Intrusos con <span class="grad">IA</span>
+  </h1>
+  <p>
+    Sistema enterprise-grade para detectar ataques en tiempo real.
+    CNN-1D + Random Forest. Multi-tenant. Multi-cloud. WebSocket streaming.
+  </p>
+  <div class="hero-ctas">
+    <a href="#demo" class="btn-primary">▶ Ver Demo en vivo</a>
+    <a href="https://github.com/j3in3r/jeiguard-ai" target="_blank" class="btn-secondary">
+      📂 Ver código fuente
+    </a>
+  </div>
+</section>
+
+<!-- ── METRICS ───────────────────────────────────────────────────────── -->
+<div class="metrics-bar">
+  <div class="metric-item">
+    <div class="metric-val" data-target="97.4" data-suffix="%">0%</div>
+    <div class="metric-label">Accuracy global</div>
+  </div>
+  <div class="metric-item">
+    <div class="metric-val" data-target="15000" data-suffix="/seg">0</div>
+    <div class="metric-label">Flujos procesados</div>
+  </div>
+  <div class="metric-item">
+    <div class="metric-val" data-target="12" data-prefix="< " data-suffix="ms">0ms</div>
+    <div class="metric-label">Latencia P99</div>
+  </div>
+  <div class="metric-item">
+    <div class="metric-val" data-target="97.3" data-suffix="%">0%</div>
+    <div class="metric-label">F1-Score macro</div>
+  </div>
+  <div class="metric-item">
+    <div class="metric-val" data-target="0.996">0</div>
+    <div class="metric-label">ROC-AUC</div>
+  </div>
+</div>
+
+<!-- ── ARCHITECTURE ──────────────────────────────────────────────────── -->
+<section id="architecture">
+  <div class="section-tag">Arquitectura</div>
+  <h2>Pipeline de detección en tiempo real</h2>
+  <p class="section-sub">Desde la captura de tráfico hasta la alerta en el dashboard, todo en menos de 12ms.</p>
+  <div class="pipeline-wrap">
+    <div class="pipeline">
+      <div class="pipe-node">
+        <span class="icon">🌐</span>
+        <div class="title">Captura</div>
+        <div class="sub">Tráfico de red<br/>NetFlow/PCAP</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node" style="border-color:rgba(14,165,233,.3)">
+        <span class="icon">⚡</span>
+        <div class="title">Kafka</div>
+        <div class="sub">raw.flows<br/>15K msg/seg</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node">
+        <span class="icon">🔧</span>
+        <div class="title">Preprocessor</div>
+        <div class="sub">41 features<br/>normalización</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node" style="border-color:rgba(99,102,241,.4)">
+        <span class="icon">🧠</span>
+        <div class="title">CNN-1D + RF</div>
+        <div class="sub">487K params<br/>97.4% acc</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node">
+        <span class="icon">🎯</span>
+        <div class="title">Alert Manager</div>
+        <div class="sub">MITRE ATT&amp;CK<br/>CVE/NVD</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node" style="border-color:rgba(34,197,94,.3)">
+        <span class="icon">📡</span>
+        <div class="title">WebSocket</div>
+        <div class="sub">Streaming<br/>multi-tenant</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ──────────────────────────────────────────────────────── -->
+<section id="features" style="background:var(--bg2)">
+  <div class="section-tag">Funcionalidades</div>
+  <h2>15 mejoras de nivel enterprise</h2>
+  <p class="section-sub">Desde el modelo de IA hasta infraestructura multi-cloud, cada componente pensado para producción.</p>
+
+  <div class="group-header">
+    <span class="group-label">Grupo 1 — Inteligencia del modelo</span>
+    <div class="group-line"></div>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-num">MEJORA 01</div>
+      <div class="feature-title">XAI Explicabilidad</div>
+      <div class="feature-desc">SHAP values explican por qué el modelo tomó cada decisión. Crucial para entornos regulados.</div>
+      <span class="feature-tag">xai_service.py</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">MEJORA 02</div>
+      <div class="feature-title">Dashboard Streamlit</div>
+      <div class="feature-desc">Interfaz web con 4 páginas interactivas: alertas en vivo, análisis histórico, topología, métricas.</div>
+      <span class="feature-tag">streamlit_app.py</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">MEJORA 03</div>
+      <div class="feature-title">CNN-1D TensorFlow</div>
+      <div class="feature-desc">Red neuronal convolucional de 487K parámetros. Detecta patrones temporales en secuencias de flujos.</div>
+      <span class="feature-tag">model_v101.py</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">MEJORA 04</div>
+      <div class="feature-title">Online Learning</div>
+      <div class="feature-desc">El modelo aprende del tráfico nuevo en producción sin interrupciones. Adaptación continua.</div>
+      <span class="feature-tag">model_v101.py</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">MEJORA 05</div>
+      <div class="feature-title">Detección de anomalías</div>
+      <div class="feature-desc">Autoencoder detecta ataques zero-day nunca vistos antes, sin necesidad de datos etiquetados.</div>
+      <span class="feature-tag">anomaly_federated_v101.py</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">MEJORA 06</div>
+      <div class="feature-title">Aprendizaje federado</div>
+      <div class="feature-desc">Algoritmo FedAvg: múltiples sensores entrenan colaborativamente sin compartir datos sensibles.</div>
+      <span class="feature-tag">anomaly_federated_v101.py</span>
+    </div>
+  </div>
+
+  <div class="group-header">
+    <span class="group-label">Grupo 2 — Operaciones y respuesta</span>
+    <div class="group-line"></div>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-num">MEJORA 07</div>
+      <div class="feature-title">LLM Analyst</div>
+      <div class="feature-desc">Claude API genera narrativa forense automática por cada alerta. Reduce tiempo de análisis un 80%.</div>
+      <span class="feature-tag">llm_analyst_service.py</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">MEJORA 08</div>
+      <div class="feature-title">SIEM Correlator</div>
+      <div class="feature-desc">Detecta campañas APT multi-etapa siguiendo la Cyber Kill Chain. Correlación entre eventos.</div>
+      <span class="feature-tag">siem_correlation_engine.py</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">MEJORA 09</div>
+      <div class="feature-title">SOAR Engine</div>
+      <div class="feature-desc">Respuesta automática: bloquea IPs, aísla hosts comprometidos, crea tickets en Jira.</div>
+      <span class="feature-tag">soar_response_engine.py</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">MEJORA 10</div>
+      <div class="feature-title">Threat Intelligence</div>
+      <div class="feature-desc">AbuseIPDB + VirusTotal enrichment. Reputación de IPs en tiempo real para priorizar respuesta.</div>
+      <span class="feature-tag">threat_intel_service.py</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">MEJORA 11</div>
+      <div class="feature-title">Digital Twin</div>
+      <div class="feature-desc">Mapa topológico interactivo D3.js. Los ataques activos se visualizan sobre la red en tiempo real.</div>
+      <span class="feature-tag">digital_twin_service.py</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">MEJORA 12</div>
+      <div class="feature-title">Cloud-Native AWS</div>
+      <div class="feature-desc">Terraform EKS + Helm chart. HPA automático de 2 a 20 réplicas según carga de trabajo.</div>
+      <span class="feature-tag">terraform/main.tf</span>
+    </div>
+  </div>
+
+  <div class="group-header">
+    <span class="group-label">Grupo 3 — Enterprise Platform v2.0.0</span>
+    <div class="group-line"></div>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card" style="border-color:rgba(14,165,233,.25)">
+      <div class="feature-num">MEJORA 13</div>
+      <div class="feature-title">Auth JWT + PostgreSQL</div>
+      <div class="feature-desc">Multi-tenant RBAC con 5 roles, bcrypt 12 rounds, refresh tokens, audit trail completo en BD.</div>
+      <span class="feature-tag">auth_service.py</span>
+    </div>
+    <div class="feature-card" style="border-color:rgba(14,165,233,.25)">
+      <div class="feature-num">MEJORA 14</div>
+      <div class="feature-title">Compliance + CVE</div>
+      <div class="feature-desc">NIST CSF 2.0, SOC2 Type II, ISO 27001:2022 con evaluación automatizada. NVD API v2 en tiempo real.</div>
+      <span class="feature-tag">compliance_service.py</span>
+    </div>
+    <div class="feature-card" style="border-color:rgba(14,165,233,.25)">
+      <div class="feature-num">MEJORA 15</div>
+      <div class="feature-title">Multi-cloud + OpenTelemetry</div>
+      <div class="feature-desc">Azure AKS + GCP GKE + AWS EKS. Jaeger distributed tracing. 9 métricas custom con OpenTelemetry.</div>
+      <span class="feature-tag">terraform/azure/ · terraform/gcp/</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── API DEMO ───────────────────────────────────────────────────────── -->
+<section id="api">
+  <div class="section-tag">API REST</div>
+  <h2>40+ endpoints listos para producción</h2>
+  <p class="section-sub">6 routers especializados. JWT en todos los endpoints. Swagger UI en <code style="color:var(--primary)">/docs</code>.</p>
+
+  <div class="api-demo">
+    <div class="endpoint-list" id="epList">
+      <div class="ep-item active" data-ep="login" onclick="selectEp(this,'login')">
+        <span class="method post">POST</span>
+        <span class="ep-path">/auth/login</span>
+        <span class="ep-desc">Autenticación</span>
+      </div>
+      <div class="ep-item" data-ep="predict" onclick="selectEp(this,'predict')">
+        <span class="method post">POST</span>
+        <span class="ep-path">/predict</span>
+        <span class="ep-desc">Inferencia IDS</span>
+      </div>
+      <div class="ep-item" data-ep="compliance" onclick="selectEp(this,'compliance')">
+        <span class="method post">POST</span>
+        <span class="ep-path">/compliance/nist_csf/assess</span>
+        <span class="ep-desc">Evaluación NIST</span>
+      </div>
+      <div class="ep-item" data-ep="cve" onclick="selectEp(this,'cve')">
+        <span class="method get">GET</span>
+        <span class="ep-path">/cve/attack/DoS_DDoS</span>
+        <span class="ep-desc">CVEs mapeados</span>
+      </div>
+      <div class="ep-item" data-ep="report" onclick="selectEp(this,'report')">
+        <span class="method post">POST</span>
+        <span class="ep-path">/reports/generate</span>
+        <span class="ep-desc">Reporte PDF</span>
+      </div>
+      <div class="ep-item" data-ep="ws" onclick="selectEp(this,'ws')">
+        <span class="method ws">WS</span>
+        <span class="ep-path">/ws/alerts?level=CRITICAL</span>
+        <span class="ep-desc">Streaming</span>
+      </div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang" id="codeLang">bash</span>
+      </div>
+      <pre id="codeContent"></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ── WEBSOCKET DEMO ─────────────────────────────────────────────────── -->
+<section id="demo" style="background:var(--bg2)">
+  <div class="section-tag">Demo en vivo</div>
+  <h2>WebSocket — alertas en tiempo real</h2>
+  <p class="section-sub">Así luce el stream de alertas que recibe tu dashboard cuando hay actividad maliciosa en la red.</p>
+
+  <div class="ws-terminal">
+    <div class="ws-header">
+      <div class="ws-status">
+        <div class="ws-dot" id="wsDot"></div>
+        <span id="wsStatusText" style="color:var(--green)">CONECTADO</span>
+      </div>
+      <span class="ws-url">ws://api.jeiguard.ai/api/v1/ws/alerts?level=CRITICAL,HIGH&token=eyJ...</span>
+    </div>
+    <div class="ws-body" id="wsBody"></div>
+    <div class="ws-controls">
+      <button class="ws-btn start" onclick="startWS()">▶ Iniciar</button>
+      <button class="ws-btn stop"  onclick="stopWS()">■ Pausar</button>
+      <button class="ws-btn clear" onclick="clearWS()">🗑 Limpiar</button>
+    </div>
+  </div>
+</section>
+
+<!-- ── COMPLIANCE ────────────────────────────────────────────────────── -->
+<section id="compliance">
+  <div class="section-tag">Compliance</div>
+  <h2>Cumplimiento normativo automatizado</h2>
+  <p class="section-sub">El sistema evalúa continuamente tu postura de seguridad contra los marcos normativos más exigentes.</p>
+  <div class="compliance-grid">
+    <div class="comp-card">
+      <div class="comp-score" data-target="76">0</div>
+      <div class="comp-name">NIST CSF 2.0</div>
+      <div class="comp-sub">22 controles · 17 aprobados</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%" data-w="76%"></div></div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-score" data-target="82">0</div>
+      <div class="comp-name">SOC 2 Type II</div>
+      <div class="comp-sub">14 controles · 11 aprobados</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%" data-w="82%"></div></div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-score" data-target="71">0</div>
+      <div class="comp-name">ISO 27001:2022</div>
+      <div class="comp-sub">16 controles · 11 aprobados</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%" data-w="71%"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STACK ─────────────────────────────────────────────────────────── -->
+<section id="stack" style="background:var(--bg2)">
+  <div class="section-tag">Stack tecnológico</div>
+  <h2>Tecnologías de nivel enterprise</h2>
+  <p class="section-sub">Cada componente elegido por rendimiento, madurez y soporte en producción.</p>
+  <div class="stack-grid">
+    <div class="stack-item"><div class="stack-dot"></div>Python 3.11</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#009688"></div>FastAPI 0.110</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#336791"></div>PostgreSQL 16</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#dc382d"></div>Redis 7.2</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#ff6f00"></div>TensorFlow 2.14</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#f7931e"></div>Apache Kafka</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#326CE5"></div>Kubernetes 1.29</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#0ea5e9"></div>SQLAlchemy 2.0</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#7c3aed"></div>MLflow</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#e91e63"></div>OpenTelemetry</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#00b4d8"></div>Jaeger Tracing</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#e34f26"></div>ReportLab PDF</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#00897b"></div>scikit-learn</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#f59e0b"></div>SHAP XAI</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#22c55e"></div>Terraform 1.6</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#ff9900"></div>AWS EKS</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#0089d6"></div>Azure AKS</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#4285f4"></div>GCP GKE</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#6366f1"></div>Docker · Helm</div>
+    <div class="stack-item"><div class="stack-dot" style="background:#e11d48"></div>Trivy · Bandit · Syft</div>
+  </div>
+</section>
+
+<!-- ── MULTI-CLOUD ───────────────────────────────────────────────────── -->
+<section id="cloud">
+  <div class="section-tag">Multi-cloud</div>
+  <h2>Desplegable en los 3 grandes clouds</h2>
+  <p class="section-sub">Terraform ready. Zero vendor lock-in. La misma arquitectura en AWS, Azure y GCP.</p>
+  <div class="cloud-grid">
+    <div class="cloud-card">
+      <div class="cloud-logo">🟧</div>
+      <div class="cloud-name">Amazon Web Services</div>
+      <div class="cloud-sub">EKS · MSK · RDS · ECR</div>
+      <ul class="cloud-list">
+        <li>EKS 1.29 — Kubernetes managed</li>
+        <li>MSK Kafka — Streaming managed</li>
+        <li>RDS PostgreSQL 16 HA</li>
+        <li>ECR — Container registry</li>
+        <li>HPA 2-20 réplicas automáticas</li>
+      </ul>
+    </div>
+    <div class="cloud-card">
+      <div class="cloud-logo">🔵</div>
+      <div class="cloud-name">Microsoft Azure</div>
+      <div class="cloud-sub">AKS · Event Hubs · PostgreSQL</div>
+      <ul class="cloud-list">
+        <li>AKS 1.29 — 3 zonas de disponibilidad</li>
+        <li>Event Hubs Kafka API Premium</li>
+        <li>PostgreSQL Flexible 16 + HA</li>
+        <li>Key Vault — gestión de secretos</li>
+        <li>Microsoft Defender + Azure Policy</li>
+      </ul>
+    </div>
+    <div class="cloud-card">
+      <div class="cloud-logo">🟢</div>
+      <div class="cloud-name">Google Cloud</div>
+      <div class="cloud-sub">GKE · Pub/Sub · Cloud SQL</div>
+      <ul class="cloud-list">
+        <li>GKE private cluster + Workload Identity</li>
+        <li>Pub/Sub — 5 tópicos + dead-letter</li>
+        <li>Cloud SQL PostgreSQL 16 CMEK</li>
+        <li>Cloud Armor WAF — SQLi, XSS, rate limit</li>
+        <li>Binary Authorization supply chain</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── AUTHOR ────────────────────────────────────────────────────────── -->
+<section class="author-section">
+  <div class="author-inner">
+    <div class="author-avatar">JT</div>
+    <div class="author-info">
+      <h3>Jeiner Tello Nuñez</h3>
+      <p>Estudiante · Ingeniería de Sistemas · Politécnico Grancolombiano · Código: 100313094</p>
+      <p style="margin-top:.2rem">Asesor: Luis Fernando Quiroga Peláez</p>
+      <div class="author-badges">
+        <span class="author-badge">🎓 Proyecto de Grado</span>
+        <span class="author-badge">🛡️ Cybersecurity</span>
+        <span class="author-badge">🤖 Machine Learning</span>
+        <span class="author-badge">☁️ Cloud Native</span>
+        <span class="author-badge">📄 DOI: 10.5281/zenodo.19490415</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────────────────────────── -->
+<footer>
+  <div>🛡️ <strong>JeiGuard AI</strong> v2.0.0 · MIT License · Copyright © 2026 Jeiner Tello Nuñez</div>
+  <div style="display:flex;gap:1.5rem">
+    <a href="https://github.com/j3in3r/jeiguard-ai" target="_blank" style="color:var(--primary)">GitHub</a>
+    <a href="https://doi.org/10.5281/zenodo.19490415" target="_blank" style="color:var(--muted)">DOI Zenodo</a>
+    <a href="https://github.com/j3in3r/jeiguard-ai/blob/main/LICENSE" target="_blank" style="color:var(--muted)">Licencia</a>
+  </div>
+</footer>
+
+<script>
+// ── Counter animation ──────────────────────────────────────────────────
+function animateCounters() {
+  document.querySelectorAll('[data-target]').forEach(el => {
+    const target = parseFloat(el.dataset.target);
+    const prefix = el.dataset.prefix || '';
+    const suffix = el.dataset.suffix || '';
+    const isFloat = !Number.isInteger(target);
+    const duration = 1800;
+    const start = performance.now();
+    const update = (now) => {
+      const p = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      const val = isFloat
+        ? (target * ease).toFixed(target < 10 ? 3 : 1)
+        : Math.round(target * ease).toLocaleString();
+      el.textContent = prefix + val + suffix;
+      if (p < 1) requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+  });
+}
+const obs = new IntersectionObserver(e => { if (e[0].isIntersecting) { animateCounters(); obs.disconnect(); } }, { threshold: .3 });
+obs.observe(document.querySelector('.metrics-bar'));
+
+// ── Compliance progress bars ───────────────────────────────────────────
+const obs2 = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.progress-fill').forEach(bar => {
+        bar.style.width = bar.dataset.w;
+      });
+      e.target.querySelectorAll('.comp-score').forEach(el => {
+        const target = parseInt(el.dataset.target);
+        const start = performance.now();
+        const upd = now => {
+          const p = Math.min((now - start) / 1200, 1);
+          const ease = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(target * ease) + '%';
+          if (p < 1) requestAnimationFrame(upd);
+        };
+        requestAnimationFrame(upd);
+      });
+      obs2.disconnect();
+    }
+  });
+}, { threshold: .3 });
+obs2.observe(document.getElementById('compliance'));
+
+// ── Code examples ──────────────────────────────────────────────────────
+const CODE = {
+  login: {
+    lang: 'bash',
+    html: `<span class="cm"># POST /api/v1/auth/login</span>
+<span class="fn">curl</span> <span class="op">-X</span> POST http://localhost:8080/api/v1/auth/login <span class="op">\\</span>
+  <span class="op">-H</span> <span class="str">"Content-Type: application/json"</span> <span class="op">\\</span>
+  <span class="op">-d</span> <span class="str">'{"username":"admin","password":"Admin2026!"}'</span>
+
+<span class="cm"># Respuesta:</span>
+{
+  <span class="key">"access_token"</span>:  <span class="str">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span>,
+  <span class="key">"refresh_token"</span>: <span class="str">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span>,
+  <span class="key">"token_type"</span>:    <span class="str">"bearer"</span>,
+  <span class="key">"expires_in"</span>:    <span class="num">1800</span>,
+  <span class="key">"user"</span>: {
+    <span class="key">"username"</span>: <span class="str">"admin"</span>,
+    <span class="key">"role"</span>:     <span class="str">"admin"</span>,
+    <span class="key">"tenant_id"</span>: <span class="str">"acme-corp"</span>
+  }
+}`
+  },
+  predict: {
+    lang: 'bash',
+    html: `<span class="cm"># POST /api/v1/predict — clasificar flujo de red</span>
+<span class="fn">curl</span> <span class="op">-X</span> POST http://localhost:8080/api/v1/predict <span class="op">\\</span>
+  <span class="op">-H</span> <span class="str">"Authorization: Bearer $TOKEN"</span> <span class="op">\\</span>
+  <span class="op">-d</span> <span class="str">'{"FEATURES":[[0,0,0,0,20,0,0,0,0,0,0,1,
+    0,0,0,0,0,0,0,0,0,0,500,490,0.99,0.99,
+    0,0,1,0,0,5,255,1,0.06,1,0,0.99,0.99,0,0]]}'</span>
+
+<span class="cm"># Respuesta:</span>
+{
+  <span class="key">"category"</span>:     <span class="str">"DoS_DDoS"</span>,
+  <span class="key">"confidence"</span>:   <span class="num">0.997</span>,
+  <span class="key">"alert_level"</span>:  <span class="str">"CRITICAL"</span>,
+  <span class="key">"mitre_id"</span>:     <span class="str">"T1498"</span>,
+  <span class="key">"mitre_tactic"</span>: <span class="str">"Impact"</span>,
+  <span class="key">"latency_ms"</span>:   <span class="num">3.8</span>
+}`
+  },
+  compliance: {
+    lang: 'bash',
+    html: `<span class="cm"># POST /api/v1/compliance/nist_csf/assess</span>
+<span class="fn">curl</span> <span class="op">-X</span> POST http://localhost:8080/api/v1/compliance/nist_csf/assess <span class="op">\\</span>
+  <span class="op">-H</span> <span class="str">"Authorization: Bearer $TOKEN"</span>
+
+<span class="cm"># Respuesta:</span>
+{
+  <span class="key">"framework"</span>:         <span class="str">"nist_csf"</span>,
+  <span class="key">"score"</span>:             <span class="num">0.76</span>,
+  <span class="key">"percentage"</span>:        <span class="str">"76.0%"</span>,
+  <span class="key">"controls_passing"</span>:  <span class="num">17</span>,
+  <span class="key">"controls_failing"</span>:  <span class="num">5</span>,
+  <span class="key">"gaps"</span>: [
+    <span class="str">"ID.AM-3: Hardware actualización pendiente"</span>,
+    <span class="str">"PR.AC-5: Gestión de privilegios incompleta"</span>
+  ],
+  <span class="key">"next_assessment"</span>:   <span class="str">"2026-07-17T00:00:00Z"</span>
+}`
+  },
+  cve: {
+    lang: 'bash',
+    html: `<span class="cm"># GET /api/v1/cve/attack/DoS_DDoS</span>
+<span class="fn">curl</span> http://localhost:8080/api/v1/cve/attack/DoS_DDoS <span class="op">\\</span>
+  <span class="op">-H</span> <span class="str">"Authorization: Bearer $TOKEN"</span>
+
+<span class="cm"># Respuesta (extracto):</span>
+[
+  {
+    <span class="key">"cve_id"</span>:      <span class="str">"CVE-2023-44487"</span>,
+    <span class="key">"cvss_score"</span>:  <span class="num">7.5</span>,
+    <span class="key">"severity"</span>:    <span class="str">"HIGH"</span>,
+    <span class="key">"description"</span>: <span class="str">"HTTP/2 Rapid Reset Attack"</span>,
+    <span class="key">"published"</span>:   <span class="str">"2023-10-10"</span>,
+    <span class="key">"patch_url"</span>:   <span class="str">"https://nvd.nist.gov/vuln/detail/CVE-2023-44487"</span>
+  },
+  ...
+]`
+  },
+  report: {
+    lang: 'bash',
+    html: `<span class="cm"># POST /api/v1/reports/generate — PDF ejecutivo</span>
+<span class="fn">curl</span> <span class="op">-X</span> POST http://localhost:8080/api/v1/reports/generate <span class="op">\\</span>
+  <span class="op">-H</span> <span class="str">"Authorization: Bearer $TOKEN"</span> <span class="op">\\</span>
+  <span class="op">-d</span> <span class="str">'{"report_type":"executive","period_days":30,
+      "title":"Q2 2026 Security Report"}'</span>
+
+<span class="cm"># Luego descargar:</span>
+<span class="fn">curl</span> http://localhost:8080/api/v1/reports/<span class="str">{id}</span>/download <span class="op">\\</span>
+  <span class="op">-H</span> <span class="str">"Authorization: Bearer $TOKEN"</span> <span class="op">\\</span>
+  <span class="op">-o</span> q2_report.pdf
+
+<span class="cm"># PDF incluye: portada corporativa, KPIs, tabla de ataques,
+# gráficas de tendencia y recomendaciones MITRE ATT&CK</span>`
+  },
+  ws: {
+    lang: 'javascript',
+    html: `<span class="cm">// WebSocket — stream de alertas en tiempo real</span>
+<span class="kw">const</span> ws = <span class="kw">new</span> <span class="fn">WebSocket</span>(
+  <span class="str">'ws://localhost:8080/api/v1/ws/alerts'</span> +
+  <span class="str">'?token=eyJ...'</span> +
+  <span class="str">'&level=CRITICAL,HIGH'</span> +
+  <span class="str">'&category=DoS_DDoS,Web_Exploit'</span>
+);
+
+ws.onmessage = (event) => {
+  <span class="kw">const</span> msg = <span class="fn">JSON.parse</span>(event.data);
+  <span class="kw">if</span> (msg.type === <span class="str">'alert'</span>) {
+    console.<span class="fn">log</span>(msg.payload.alert_level, msg.payload.src_ip);
+  }
+};
+
+<span class="cm">// Filtrar en caliente sin reconectar</span>
+ws.<span class="fn">send</span>(<span class="fn">JSON.stringify</span>({
+  type: <span class="str">'subscribe'</span>,
+  filters: { category: [<span class="str">'DoS_DDoS'</span>] }
+}));`
+  }
+};
+
+function selectEp(el, key) {
+  document.querySelectorAll('.ep-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('codeLang').textContent = CODE[key].lang;
+  document.getElementById('codeContent').innerHTML = CODE[key].html;
+}
+selectEp(document.querySelector('.ep-item'), 'login');
+
+// ── WebSocket simulator ────────────────────────────────────────────────
+const ATTACKS = [
+  { cat:'DoS_DDoS',    lvl:'CRITICAL', conf:.997, ips:['192.168.1.45','10.0.0.23','172.16.4.8'] },
+  { cat:'Web_Exploit', lvl:'HIGH',     conf:.984, ips:['203.0.113.55','198.51.100.7','10.1.2.34'] },
+  { cat:'Probe_Scan',  lvl:'MEDIUM',   conf:.921, ips:['192.168.0.101','10.10.0.5','172.31.2.9'] },
+  { cat:'R2L',         lvl:'HIGH',     conf:.963, ips:['198.51.100.42','10.0.5.100','172.20.1.3'] },
+  { cat:'CC_Traffic',  lvl:'CRITICAL', conf:.991, ips:['10.0.3.77','192.168.5.22','203.0.113.1'] },
+  { cat:'Backdoor',    lvl:'CRITICAL', conf:.988, ips:['172.16.0.15','10.200.1.4','192.168.99.2'] },
+  { cat:'U2R',         lvl:'HIGH',     conf:.977, ips:['10.0.0.1','192.168.1.1','172.16.10.2'] },
+];
+const LVL_CLASS = { CRITICAL:'lvl-c', HIGH:'lvl-h', MEDIUM:'lvl-m', LOW:'lvl-l' };
+let wsTimer = null;
+let wsRunning = false;
+
+function nowTS() {
+  return new Date().toLocaleTimeString('es-CO', { hour12:false,
+    hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+function addLine(html) {
+  const body = document.getElementById('wsBody');
+  const div = document.createElement('div');
+  div.className = 'ws-line';
+  div.innerHTML = html;
+  body.appendChild(div);
+  if (body.children.length > 120) body.removeChild(body.firstChild);
+  body.scrollTop = body.scrollHeight;
+}
+
+function emitAlert() {
+  const a = ATTACKS[Math.floor(Math.random() * ATTACKS.length)];
+  const ip = a.ips[Math.floor(Math.random() * a.ips.length)];
+  const dst = '10.0.' + Math.floor(Math.random()*255) + '.' + Math.floor(Math.random()*255);
+  addLine(
+    `<span class="ts">[${nowTS()}]</span> ` +
+    `<span class="${LVL_CLASS[a.lvl]}">[${a.lvl}]</span> ` +
+    `<span class="cat">${a.cat}</span> ` +
+    `<span class="ip">${ip}</span>` +
+    `<span class="op"> → </span>` +
+    `<span class="ip">${dst}</span> ` +
+    `<span class="conf">conf=${a.conf}</span>`
+  );
+}
+
+function startWS() {
+  if (wsRunning) return;
+  wsRunning = true;
+  addLine(`<span class="ts">[${nowTS()}]</span> <span style="color:var(--green)">✓ Conexión establecida. Escuchando alertas...</span>`);
+  emitAlert();
+  wsTimer = setInterval(() => {
+    const delay = Math.random() > .7 ? 3 : 1;
+    setTimeout(() => { if (wsRunning) { emitAlert(); if (Math.random()>.85) emitAlert(); } }, delay * 300);
+  }, 900 + Math.random() * 600);
+}
+
+function stopWS() {
+  wsRunning = false;
+  clearInterval(wsTimer);
+  addLine(`<span class="ts">[${nowTS()}]</span> <span style="color:var(--yellow)">⏸ Stream pausado.</span>`);
+}
+
+function clearWS() {
+  document.getElementById('wsBody').innerHTML = '';
+}
+
+// auto-start after 1s
+setTimeout(startWS, 1000);
+</script>
+</body>
+</html>

@@ -590,6 +590,59 @@
       transition: border-color .2s, background .2s;
     }
     .dash-action-btn:hover { border-color: var(--primary); background: rgba(14,165,233,.05); }
+
+    /* ── RESULT MODALS ── */
+    .result-modal {
+      display: none; position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,.75); backdrop-filter: blur(6px);
+      align-items: flex-start; justify-content: center;
+      padding: 2rem 1rem; overflow-y: auto;
+    }
+    .result-modal.open { display: flex; }
+    .result-box {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 16px; width: 100%; max-width: 680px;
+      animation: slideUp .25s ease; margin: auto;
+    }
+    .result-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+    }
+    .result-head h3 { font-size: 1rem; font-weight: 800; }
+    .result-body { padding: 1.5rem; }
+    .btn-close-modal {
+      background: none; border: none; color: var(--muted);
+      font-size: 1.2rem; cursor: pointer; padding: .2rem .5rem;
+    }
+    /* compliance */
+    .fw-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: .75rem; margin-bottom: 1.5rem; }
+    .fw-card {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1rem; text-align: center;
+    }
+    .fw-score { font-size: 1.8rem; font-weight: 900; color: var(--primary); }
+    .fw-name  { font-size: .75rem; font-weight: 700; margin-top: .2rem; }
+    .ctrl-list { display: flex; flex-direction: column; gap: .4rem; max-height: 320px; overflow-y: auto; }
+    .ctrl-item {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .5rem .75rem; border-radius: 6px;
+      background: var(--card); font-size: .78rem;
+    }
+    .ctrl-ok  { color: var(--green); font-size: 1rem; flex-shrink: 0; }
+    .ctrl-fail{ color: var(--red);   font-size: 1rem; flex-shrink: 0; }
+    .ctrl-id  { font-family: 'JetBrains Mono',monospace; color: var(--primary); min-width: 72px; font-size: .72rem; }
+    /* cve */
+    .cve-filters { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .cve-filter-btn {
+      padding: .3rem .75rem; border-radius: 99px; font-size: .75rem; font-weight: 600;
+      border: 1px solid var(--border); background: var(--card); color: var(--muted);
+      cursor: pointer; transition: all .15s; font-family: inherit;
+    }
+    .cve-filter-btn.active { background: rgba(14,165,233,.15); border-color: var(--primary); color: var(--primary); }
+    .cve-table-wrap { max-height: 380px; overflow-y: auto; }
+    .cvss-high { color: #ef4444; font-weight: 700; }
+    .cvss-med  { color: #f59e0b; font-weight: 700; }
+    .cvss-low  { color: #22c55e; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -1122,11 +1175,93 @@
   </div>
 
   <div class="dash-actions">
-    <button class="dash-action-btn" onclick="alert('En producción: genera reporte PDF ejecutivo')">📄 Generar reporte PDF</button>
-    <button class="dash-action-btn" onclick="alert('En producción: ejecuta evaluación NIST CSF / SOC2 / ISO 27001')">✅ Evaluación compliance</button>
-    <button class="dash-action-btn" onclick="alert('En producción: consulta CVEs del NVD para las amenazas activas')">🔍 Consultar CVEs</button>
+    <button class="dash-action-btn" onclick="generatePDF()">📄 Generar reporte PDF</button>
+    <button class="dash-action-btn" onclick="openCompliance()">✅ Evaluación compliance</button>
+    <button class="dash-action-btn" onclick="openCVEs()">🔍 Consultar CVEs</button>
     <button class="dash-action-btn" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">📡 Ver WebSocket live</button>
     <button class="dash-action-btn" onclick="window.open('https://github.com/j3in3r/jeiguard-ai','_blank')">📂 Ver código fuente</button>
+  </div>
+</div>
+
+<!-- ── COMPLIANCE MODAL ──────────────────────────────────────────── -->
+<div class="result-modal" id="complianceModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="result-box">
+    <div class="result-head">
+      <h3>✅ Evaluación de Compliance — acme-corp</h3>
+      <button class="btn-close-modal" onclick="document.getElementById('complianceModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="result-body">
+      <div class="fw-grid">
+        <div class="fw-card">
+          <div class="fw-score">76%</div>
+          <div class="fw-name">NIST CSF 2.0</div>
+          <div style="font-size:.7rem;color:var(--muted);margin-top:.3rem">17/22 controles</div>
+        </div>
+        <div class="fw-card">
+          <div class="fw-score">82%</div>
+          <div class="fw-name">SOC 2 Type II</div>
+          <div style="font-size:.7rem;color:var(--muted);margin-top:.3rem">11/14 controles</div>
+        </div>
+        <div class="fw-card">
+          <div class="fw-score">71%</div>
+          <div class="fw-name">ISO 27001:2022</div>
+          <div style="font-size:.7rem;color:var(--muted);margin-top:.3rem">11/16 controles</div>
+        </div>
+      </div>
+      <div style="font-size:.8rem;font-weight:700;margin-bottom:.75rem;color:var(--muted);letter-spacing:.05em;text-transform:uppercase">Controles NIST CSF 2.0</div>
+      <div class="ctrl-list">
+        <div class="ctrl-item"><span class="ctrl-ok">✓</span><span class="ctrl-id">ID.AM-1</span>Inventario de activos de hardware documentado</div>
+        <div class="ctrl-item"><span class="ctrl-ok">✓</span><span class="ctrl-id">ID.AM-2</span>Inventario de activos de software documentado</div>
+        <div class="ctrl-item"><span class="ctrl-fail">✗</span><span class="ctrl-id">ID.AM-3</span>Flujos de datos y comunicaciones de la organización mapeados</div>
+        <div class="ctrl-item"><span class="ctrl-ok">✓</span><span class="ctrl-id">PR.AC-1</span>Identidades y credenciales gestionadas para usuarios autorizados</div>
+        <div class="ctrl-item"><span class="ctrl-ok">✓</span><span class="ctrl-id">PR.AC-3</span>Acceso remoto gestionado con MFA habilitado</div>
+        <div class="ctrl-item"><span class="ctrl-fail">✗</span><span class="ctrl-id">PR.AC-5</span>Integridad de la red protegida con segmentación</div>
+        <div class="ctrl-item"><span class="ctrl-ok">✓</span><span class="ctrl-id">PR.DS-1</span>Datos en reposo protegidos con cifrado AES-256</div>
+        <div class="ctrl-item"><span class="ctrl-ok">✓</span><span class="ctrl-id">PR.DS-2</span>Datos en tránsito protegidos con TLS 1.3</div>
+        <div class="ctrl-item"><span class="ctrl-ok">✓</span><span class="ctrl-id">DE.CM-1</span>Red monitoreada para detectar eventos de ciberseguridad</div>
+        <div class="ctrl-item"><span class="ctrl-ok">✓</span><span class="ctrl-id">DE.CM-4</span>Código malicioso detectado — IDS con 97.4% accuracy</div>
+        <div class="ctrl-item"><span class="ctrl-fail">✗</span><span class="ctrl-id">DE.CM-7</span>Monitoreo de personal no autorizado y dispositivos</div>
+        <div class="ctrl-item"><span class="ctrl-ok">✓</span><span class="ctrl-id">RS.RP-1</span>Plan de respuesta a incidentes ejecutado durante incidentes</div>
+        <div class="ctrl-item"><span class="ctrl-ok">✓</span><span class="ctrl-id">RS.CO-2</span>Incidentes reportados según criterios establecidos</div>
+        <div class="ctrl-item"><span class="ctrl-ok">✓</span><span class="ctrl-id">RS.AN-1</span>Notificaciones de sistemas de detección investigadas</div>
+        <div class="ctrl-item"><span class="ctrl-fail">✗</span><span class="ctrl-id">RC.RP-1</span>Plan de recuperación ejecutado durante o después de incidente</div>
+        <div class="ctrl-item"><span class="ctrl-ok">✓</span><span class="ctrl-id">RC.IM-1</span>Planes de recuperación incorporan lecciones aprendidas</div>
+        <div class="ctrl-item"><span class="ctrl-ok">✓</span><span class="ctrl-id">GV.OC-1</span>Misión organizacional informada sobre riesgos de ciberseguridad</div>
+      </div>
+      <div style="margin-top:1rem;padding:.75rem;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:8px;font-size:.78rem;color:#fca5a5">
+        <strong>⚠ Brechas detectadas (5):</strong> ID.AM-3 · PR.AC-5 · DE.CM-7 · RC.RP-1 · PR.AT-1<br/>
+        Próxima evaluación automática: <strong>2026-07-17</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CVE MODAL ─────────────────────────────────────────────────── -->
+<div class="result-modal" id="cveModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="result-box">
+    <div class="result-head">
+      <h3>🔍 CVEs activos — acme-corp</h3>
+      <button class="btn-close-modal" onclick="document.getElementById('cveModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="result-body">
+      <div class="cve-filters">
+        <button class="cve-filter-btn active" onclick="filterCVE(this,'ALL')">Todos</button>
+        <button class="cve-filter-btn" onclick="filterCVE(this,'DoS_DDoS')">DoS/DDoS</button>
+        <button class="cve-filter-btn" onclick="filterCVE(this,'Web_Exploit')">Web Exploit</button>
+        <button class="cve-filter-btn" onclick="filterCVE(this,'R2L')">R2L</button>
+        <button class="cve-filter-btn" onclick="filterCVE(this,'Backdoor')">Backdoor</button>
+      </div>
+      <div class="cve-table-wrap">
+        <table id="cveTable">
+          <thead>
+            <tr>
+              <th>CVE ID</th><th>CVSS</th><th>Severidad</th><th>Categoría</th><th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody id="cveTbody"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1496,6 +1631,142 @@ function addDashRow() {
   const a = DASH_ATTACKS[Math.floor(Math.random()*DASH_ATTACKS.length)];
   tbody.insertAdjacentHTML('afterbegin', makeRow(a));
   if (tbody.children.length > 8) tbody.removeChild(tbody.lastChild);
+}
+
+// ── PDF Report ──────────────────────────────────────────────────────────
+function generatePDF() {
+  const user = document.getElementById('navUsername').textContent || 'admin';
+  const now  = new Date().toLocaleString('es-CO',{dateStyle:'long',timeStyle:'short'});
+  const win  = window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head>
+  <meta charset="UTF-8"/>
+  <title>JeiGuard AI — Reporte Ejecutivo Q2 2026</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;background:#fff;padding:0}
+    .cover{background:linear-gradient(135deg,#1A2B4A 0%,#0ea5e9 100%);color:#fff;
+           padding:60px 48px;min-height:260px;display:flex;flex-direction:column;justify-content:flex-end}
+    .cover h1{font-size:2rem;font-weight:900;letter-spacing:-.02em;margin-bottom:.4rem}
+    .cover p{font-size:.95rem;opacity:.8}
+    .cover .badge{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+                  padding:.3rem .9rem;border-radius:99px;font-size:.75rem;font-weight:700;margin-bottom:1.5rem}
+    .body{padding:36px 48px}
+    .meta{display:flex;gap:2rem;margin-bottom:2rem;padding-bottom:1rem;border-bottom:2px solid #e2e8f0;font-size:.82rem;color:#64748b}
+    .meta strong{color:#1e293b}
+    h2{font-size:1.1rem;font-weight:800;color:#1A2B4A;margin:1.75rem 0 .9rem;padding-bottom:.4rem;border-bottom:1px solid #e2e8f0}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem}
+    .kpi{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:1rem;text-align:center}
+    .kpi .v{font-size:1.6rem;font-weight:900;color:#0ea5e9}
+    .kpi .l{font-size:.72rem;color:#64748b;margin-top:.2rem}
+    table{width:100%;border-collapse:collapse;font-size:.82rem}
+    th{background:#f1f5f9;padding:.5rem .75rem;text-align:left;font-weight:700;font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;color:#475569}
+    td{padding:.55rem .75rem;border-bottom:1px solid #f1f5f9}
+    .pill{display:inline-block;padding:.15rem .55rem;border-radius:4px;font-size:.7rem;font-weight:700}
+    .c{background:#fee2e2;color:#dc2626}.h{background:#fef3c7;color:#d97706}.m{background:#fefce8;color:#ca8a04}
+    .comp-row{display:flex;align-items:center;gap:1rem;margin-bottom:.75rem}
+    .comp-bar{flex:1;height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden}
+    .comp-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#0ea5e9,#6366f1)}
+    .comp-score{font-weight:800;color:#0ea5e9;min-width:40px;text-align:right;font-size:.9rem}
+    .comp-name{min-width:130px;font-size:.82rem;font-weight:600;color:#334155}
+    .rec{background:#f0f9ff;border-left:3px solid #0ea5e9;padding:.65rem 1rem;margin-bottom:.6rem;border-radius:0 6px 6px 0;font-size:.82rem}
+    .footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid #e2e8f0;
+            display:flex;justify-content:space-between;font-size:.72rem;color:#94a3b8}
+    @media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+  </style></head><body>
+  <div class="cover">
+    <div class="badge">🛡️ JeiGuard AI v2.0.0 — CONFIDENCIAL</div>
+    <h1>Reporte Ejecutivo de Seguridad</h1>
+    <p>Q2 2026 · Período: últimos 30 días · Tenant: acme-corp</p>
+  </div>
+  <div class="body">
+    <div class="meta">
+      <span>Generado: <strong>${now}</strong></span>
+      <span>Usuario: <strong>${user}</strong></span>
+      <span>Tenant: <strong>acme-corp</strong></span>
+      <span>Clasificación: <strong>CONFIDENCIAL</strong></span>
+    </div>
+    <h2>Resumen Ejecutivo — KPIs</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="v">47</div><div class="l">Alertas detectadas</div></div>
+      <div class="kpi"><div class="v">128</div><div class="l">Amenazas bloqueadas</div></div>
+      <div class="kpi"><div class="v">97.4%</div><div class="l">Precisión del modelo</div></div>
+      <div class="kpi"><div class="v">3.8ms</div><div class="l">Latencia P50</div></div>
+    </div>
+    <h2>Alertas por Categoría</h2>
+    <table>
+      <tr><th>Categoría</th><th>Nivel</th><th>Total</th><th>MITRE ATT&CK</th><th>Acción tomada</th></tr>
+      <tr><td>DoS/DDoS</td><td><span class="pill c">CRITICAL</span></td><td>18</td><td>T1498</td><td>IP bloqueada automáticamente</td></tr>
+      <tr><td>Web Exploit</td><td><span class="pill h">HIGH</span></td><td>12</td><td>T1190</td><td>Request rechazado por WAF</td></tr>
+      <tr><td>Probe/Scan</td><td><span class="pill m">MEDIUM</span></td><td>9</td><td>T1046</td><td>Alerta enviada a analista</td></tr>
+      <tr><td>R2L</td><td><span class="pill h">HIGH</span></td><td>5</td><td>T1110</td><td>Cuenta bloqueada temporalmente</td></tr>
+      <tr><td>Backdoor</td><td><span class="pill c">CRITICAL</span></td><td>3</td><td>T1543</td><td>Host aislado de la red</td></tr>
+    </table>
+    <h2>Postura de Compliance</h2>
+    <div class="comp-row"><span class="comp-name">NIST CSF 2.0</span><div class="comp-bar"><div class="comp-fill" style="width:76%"></div></div><span class="comp-score">76%</span></div>
+    <div class="comp-row"><span class="comp-name">SOC 2 Type II</span><div class="comp-bar"><div class="comp-fill" style="width:82%"></div></div><span class="comp-score">82%</span></div>
+    <div class="comp-row"><span class="comp-name">ISO 27001:2022</span><div class="comp-bar"><div class="comp-fill" style="width:71%"></div></div><span class="comp-score">71%</span></div>
+    <h2>Recomendaciones</h2>
+    <div class="rec">🔴 <strong>Crítico:</strong> Implementar segmentación de red (NIST PR.AC-5) — reduce superficie de ataque en un 40% estimado.</div>
+    <div class="rec">🟡 <strong>Alto:</strong> Completar mapeo de flujos de datos (NIST ID.AM-3) — necesario para auditoría SOC2 pendiente.</div>
+    <div class="rec">🟡 <strong>Alto:</strong> Actualizar parche CVE-2023-44487 (HTTP/2 Rapid Reset) — CVSS 7.5, explotable remotamente.</div>
+    <div class="rec">🟢 <strong>Medio:</strong> Habilitar MFA para todos los usuarios analistas — actualmente 3 cuentas sin MFA activo.</div>
+    <div class="footer">
+      <span>JeiGuard AI v2.0.0 — Sistema de Detección de Intrusiones con IA</span>
+      <span>Copyright © 2026 Jeiner Tello Nuñez · Politécnico Grancolombiano</span>
+    </div>
+  </div>
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+// ── Compliance ───────────────────────────────────────────────────────────
+function openCompliance() {
+  document.getElementById('complianceModal').classList.add('open');
+}
+
+// ── CVEs ─────────────────────────────────────────────────────────────────
+const CVE_DATA = [
+  {id:'CVE-2023-44487',cvss:7.5,sev:'HIGH',cat:'DoS_DDoS',    desc:'HTTP/2 Rapid Reset Attack — afecta servidores web'},
+  {id:'CVE-2024-21762',cvss:9.8,sev:'CRITICAL',cat:'Web_Exploit',desc:'Fortinet FortiOS SSL VPN out-of-bounds write RCE'},
+  {id:'CVE-2023-20198',cvss:10.0,sev:'CRITICAL',cat:'Web_Exploit',desc:'Cisco IOS XE Web UI privilege escalation'},
+  {id:'CVE-2024-3400', cvss:10.0,sev:'CRITICAL',cat:'Web_Exploit',desc:'PAN-OS GlobalProtect command injection RCE'},
+  {id:'CVE-2023-46747',cvss:9.8,sev:'CRITICAL',cat:'R2L',     desc:'F5 BIG-IP authentication bypass'},
+  {id:'CVE-2024-1709', cvss:10.0,sev:'CRITICAL',cat:'R2L',    desc:'ConnectWise ScreenConnect auth bypass'},
+  {id:'CVE-2023-4966', cvss:9.4,sev:'CRITICAL',cat:'R2L',     desc:'Citrix Bleed — NetScaler session token leak'},
+  {id:'CVE-2023-42793',cvss:9.8,sev:'CRITICAL',cat:'Backdoor',desc:'JetBrains TeamCity auth bypass — supply chain risk'},
+  {id:'CVE-2023-22515',cvss:10.0,sev:'CRITICAL',cat:'Backdoor',desc:'Atlassian Confluence privilege escalation'},
+  {id:'CVE-2024-6387', cvss:8.1,sev:'HIGH',cat:'DoS_DDoS',    desc:'OpenSSH regreSSHion — race condition RCE'},
+  {id:'CVE-2023-35078',cvss:10.0,sev:'CRITICAL',cat:'R2L',    desc:'Ivanti EPMM API auth bypass'},
+  {id:'CVE-2024-21887',cvss:9.1,sev:'CRITICAL',cat:'Web_Exploit',desc:'Ivanti Connect Secure command injection'},
+];
+let _cveFilter = 'ALL';
+
+function renderCVEs() {
+  const data = _cveFilter === 'ALL' ? CVE_DATA : CVE_DATA.filter(c => c.cat === _cveFilter);
+  document.getElementById('cveTbody').innerHTML = data.map(c => {
+    const sc = c.cvss >= 9 ? 'cvss-high' : c.cvss >= 7 ? 'cvss-med' : 'cvss-low';
+    const sp = c.sev === 'CRITICAL' ? 'pill-c' : 'pill-h';
+    return `<tr>
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--primary);font-size:.75rem">${c.id}</td>
+      <td class="${sc}">${c.cvss}</td>
+      <td><span class="pill ${sp}">${c.sev}</span></td>
+      <td style="color:var(--muted);font-size:.75rem">${c.cat}</td>
+      <td style="font-size:.78rem">${c.desc}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterCVE(btn, cat) {
+  document.querySelectorAll('.cve-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _cveFilter = cat;
+  renderCVEs();
+}
+
+function openCVEs() {
+  renderCVEs();
+  document.getElementById('cveModal').classList.add('open');
 }
 
 function logout() {

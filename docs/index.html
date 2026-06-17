@@ -2701,6 +2701,11 @@ function initCharts() {
     }
   });
 }
+
+// ── Extend session helper ────────────────────────────────────────────────
+function extendSession() {
+  if (typeof renewSession === 'function') renewSession(); else if (typeof resetSessionTimer === 'function') resetSessionTimer();
+}
 </script>
 
 <!-- ── Toast container ───────────────────────────────────────────────── -->
@@ -2829,6 +2834,15 @@ function initCharts() {
         <button type="submit" class="dash-btn dash-btn-accent" style="background:rgba(99,102,241,.18)">Guardar configuración →</button>
       </div>
     </form>
+  </div>
+</div>
+
+<div class="session-warning" id="sessionWarning">
+  <div class="session-warning-title">⏱ Sesión por expirar</div>
+  <div class="session-warning-msg">Tu sesión expirará en 2 minutos por inactividad.</div>
+  <div class="session-warning-btns">
+    <button class="dash-btn" style="font-size:.75rem;padding:.4rem .8rem" onclick="extendSession()">Continuar sesión</button>
+    <button class="dash-btn" style="font-size:.75rem;padding:.4rem .8rem;color:#f87171" onclick="logout()">Cerrar sesión</button>
   </div>
 </div>
 

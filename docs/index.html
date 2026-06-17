@@ -578,7 +578,26 @@
     }
     .pill-c { background: rgba(239,68,68,.15);  color: #f87171; }
     .pill-h { background: rgba(245,158,11,.15); color: #fbbf24; }
-    .pill-m { background: rgba(250,204,21,.15); color: #fde047; }
+    .pill-m   { background: rgba(250,204,21,.15); color: #fde047; }
+    .pill-ok  { background: rgba(16,185,129,.15); color: #34d399; }
+    .pill-warn{ background: rgba(245,158,11,.15); color: #fbbf24; }
+    .btn-role-action {
+      background: rgba(14,165,233,.1); border: 1px solid rgba(14,165,233,.25);
+      color: var(--primary); border-radius: 6px; padding: .28rem .75rem;
+      font-size: .74rem; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', sans-serif; transition: background .2s;
+    }
+    .btn-role-action:hover { background: rgba(14,165,233,.22); }
+    .dash-btn {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: .6rem 1.1rem;
+      font-size: .82rem; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', sans-serif; color: var(--text);
+      transition: border-color .2s, background .2s;
+    }
+    .dash-btn:hover { border-color: var(--primary); background: rgba(14,165,233,.06); }
+    .dash-btn-accent { border-color: rgba(99,102,241,.4); color: #818cf8; }
+    .dash-btn-accent:hover { background: rgba(99,102,241,.08); border-color: #818cf8; }
     .dash-actions {
       display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.25rem;
     }
@@ -1123,64 +1142,38 @@
 
 <!-- ── DASHBOARD ─────────────────────────────────────────────────────── -->
 <div id="dashboard">
+  <!-- Welcome -->
   <div class="dash-welcome">
     <div class="dash-avatar" id="dashAvatar">JT</div>
-    <div>
-      <h2 id="dashWelcome">Bienvenido, admin</h2>
-      <p id="dashSub">Tenant: <strong>acme-corp</strong> &nbsp;·&nbsp; Rol: <strong>admin</strong> &nbsp;·&nbsp; Último acceso: hoy</p>
+    <div style="flex:1">
+      <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+        <h2 id="dashWelcome">Bienvenido, admin</h2>
+        <span id="dashRoleBadge" style="font-size:.72rem;font-weight:800;padding:.25rem .75rem;border-radius:99px;letter-spacing:.06em;text-transform:uppercase"></span>
+      </div>
+      <p id="dashSub" style="margin-top:.2rem"></p>
+      <p id="dashRoleDesc" style="margin-top:.3rem;font-size:.78rem;color:var(--muted)"></p>
     </div>
   </div>
 
-  <div class="dash-grid">
-    <div class="dash-card">
-      <div class="val" style="color:var(--red)" id="dcAlertas">0</div>
-      <div class="lbl">Alertas hoy</div>
-      <div class="trend trend-up" id="dcAlertasTrend">↑ +3 última hora</div>
-    </div>
-    <div class="dash-card">
-      <div class="val" style="color:var(--green)" id="dcBloqueados">0</div>
-      <div class="lbl">Amenazas bloqueadas</div>
-      <div class="trend trend-down">↓ −12% vs ayer</div>
-    </div>
-    <div class="dash-card">
-      <div class="val" style="color:var(--primary)" id="dcFlujos">0</div>
-      <div class="lbl">Flujos/seg activos</div>
-      <div class="trend trend-ok">● Operación normal</div>
-    </div>
-    <div class="dash-card">
-      <div class="val" style="color:var(--yellow)">76%</div>
-      <div class="lbl">NIST CSF Score</div>
-      <div class="trend trend-ok">↑ +4% este mes</div>
-    </div>
-  </div>
+  <!-- KPI cards — rendered by JS -->
+  <div class="dash-grid" id="dashKpis"></div>
 
-  <div class="dash-table-wrap">
+  <!-- Alerts table — visible to all roles -->
+  <div class="dash-table-wrap" style="margin-bottom:1rem">
     <div class="dash-table-head">
       <span><span class="dash-live-dot"></span>Alertas recientes</span>
-      <span style="font-size:.75rem;color:var(--muted);font-weight:400">Actualización en tiempo real</span>
+      <span style="font-size:.75rem;color:var(--muted);font-weight:400">Tiempo real</span>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Hora</th>
-          <th>Nivel</th>
-          <th>Categoría</th>
-          <th>IP Origen</th>
-          <th>Confianza</th>
-          <th>MITRE</th>
-        </tr>
-      </thead>
-      <tbody id="dashTableBody"></tbody>
-    </table>
+    <table><thead><tr>
+      <th>Hora</th><th>Nivel</th><th>Categoría</th><th>IP Origen</th><th>Confianza</th><th>MITRE</th>
+    </tr></thead><tbody id="dashTableBody"></tbody></table>
   </div>
 
-  <div class="dash-actions">
-    <button class="dash-action-btn" onclick="generatePDF()">📄 Generar reporte PDF</button>
-    <button class="dash-action-btn" onclick="openCompliance()">✅ Evaluación compliance</button>
-    <button class="dash-action-btn" onclick="openCVEs()">🔍 Consultar CVEs</button>
-    <button class="dash-action-btn" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">📡 Ver WebSocket live</button>
-    <button class="dash-action-btn" onclick="window.open('https://github.com/j3in3r/jeiguard-ai','_blank')">📂 Ver código fuente</button>
-  </div>
+  <!-- Role-specific panels — rendered by JS -->
+  <div id="dashRolePanels"></div>
+
+  <!-- Action buttons — rendered by JS -->
+  <div class="dash-actions" id="dashActions"></div>
 </div>
 
 <!-- ── COMPLIANCE MODAL ──────────────────────────────────────────── -->
@@ -1555,7 +1548,7 @@ function doLogin() {
 }
 
 function showDashboard(username, u) {
-  // Navbar → estado logueado
+  // Navbar → logged-in state
   document.getElementById('btnOpenLogin').style.display = 'none';
   const navUser = document.getElementById('navUser');
   navUser.style.display = 'flex';
@@ -1563,7 +1556,7 @@ function showDashboard(username, u) {
   document.getElementById('navUsername').textContent = username;
   document.getElementById('navRole').textContent     = u.role;
 
-  // Dashboard
+  // Dashboard skeleton
   const dash = document.getElementById('dashboard');
   dash.style.display = 'block';
   document.getElementById('dashAvatar').textContent  = u.name.split(' ').map(w=>w[0]).join('').slice(0,2);
@@ -1572,16 +1565,218 @@ function showDashboard(username, u) {
     'Tenant: <strong>' + u.tenant + '</strong> &nbsp;·&nbsp; Rol: <strong>' + u.role +
     '</strong> &nbsp;·&nbsp; ' + new Date().toLocaleString('es-CO', {dateStyle:'medium',timeStyle:'short'});
 
+  // Role badge
+  const badge = document.getElementById('dashRoleBadge');
+  if (u.role === 'admin') {
+    badge.textContent = '⚙ ADMIN';
+    badge.style.cssText += 'background:rgba(99,102,241,.18);color:#818cf8;border:1px solid rgba(99,102,241,.35)';
+  } else {
+    badge.textContent = '🔍 ANALYST';
+    badge.style.cssText += 'background:rgba(14,165,233,.15);color:#38bdf8;border:1px solid rgba(14,165,233,.3)';
+  }
+
+  // Role description
+  const desc = document.getElementById('dashRoleDesc');
+  if (u.role === 'admin') {
+    desc.textContent = 'Acceso completo: gestión de usuarios, registro de modelos, configuración de tenant y todas las acciones de análisis.';
+  } else {
+    desc.textContent = 'Acceso de análisis: visualización de alertas, experimentos A/B, consulta de CVEs y exportación de reportes.';
+  }
+
+  // KPI cards
+  const kpisEl = document.getElementById('dashKpis');
+  const baseKpis = `
+    <div class="dash-kpi"><div class="dash-kpi-val" id="dcAlertas">—</div><div class="dash-kpi-lbl">Alertas hoy</div></div>
+    <div class="dash-kpi"><div class="dash-kpi-val" id="dcBloqueados">—</div><div class="dash-kpi-lbl">IPs bloqueadas</div></div>
+    <div class="dash-kpi"><div class="dash-kpi-val" id="dcFlujos">—</div><div class="dash-kpi-lbl">Flujos analizados</div></div>
+    <div class="dash-kpi"><div class="dash-kpi-val" style="color:var(--success)">97.4%</div><div class="dash-kpi-lbl">Precisión modelo</div></div>`;
+  const adminKpis = `
+    <div class="dash-kpi"><div class="dash-kpi-val" id="dcUsers" style="color:var(--accent)">—</div><div class="dash-kpi-lbl">Usuarios activos</div></div>
+    <div class="dash-kpi"><div class="dash-kpi-val" id="dcModels" style="color:var(--accent)">—</div><div class="dash-kpi-lbl">Modelos registrados</div></div>`;
+  kpisEl.innerHTML = baseKpis + (u.role === 'admin' ? adminKpis : '');
+
+  // Role-specific panels
+  const panelsEl = document.getElementById('dashRolePanels');
+  if (u.role === 'admin') {
+    panelsEl.innerHTML = `
+      <div class="dash-table-wrap" style="margin-bottom:1rem">
+        <div class="dash-table-head">
+          <span>👥 Gestión de Usuarios</span>
+          <span style="font-size:.75rem;color:var(--muted);font-weight:400">Tenant: ${u.tenant}</span>
+        </div>
+        <table><thead><tr>
+          <th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Acción</th>
+        </tr></thead><tbody>
+          <tr>
+            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">admin</td>
+            <td>Jeiner Tello</td>
+            <td><span class="pill" style="background:rgba(99,102,241,.18);color:#818cf8">admin</span></td>
+            <td><span class="pill pill-ok">activo</span></td>
+            <td><button class="btn-role-action" onclick="alert('Acción solo disponible con API activa')">Editar</button></td>
+          </tr>
+          <tr>
+            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">analyst</td>
+            <td>Ana García</td>
+            <td><span class="pill" style="background:rgba(14,165,233,.15);color:#38bdf8">analyst</span></td>
+            <td><span class="pill pill-ok">activo</span></td>
+            <td><button class="btn-role-action" onclick="promoteAnalyst()">Promover</button></td>
+          </tr>
+          <tr>
+            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">viewer_01</td>
+            <td>Carlos Ruiz</td>
+            <td><span class="pill" style="background:rgba(100,116,139,.15);color:var(--muted)">viewer</span></td>
+            <td><span class="pill pill-ok">activo</span></td>
+            <td><button class="btn-role-action" onclick="alert('Acción solo disponible con API activa')">Editar</button></td>
+          </tr>
+          <tr>
+            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">readonly_ext</td>
+            <td>Maria López</td>
+            <td><span class="pill" style="background:rgba(100,116,139,.1);color:var(--muted)">readonly</span></td>
+            <td><span class="pill" style="background:rgba(239,68,68,.1);color:#f87171">inactivo</span></td>
+            <td><button class="btn-role-action" onclick="alert('Acción solo disponible con API activa')">Activar</button></td>
+          </tr>
+        </tbody></table>
+      </div>
+      <div class="dash-table-wrap" style="margin-bottom:1rem">
+        <div class="dash-table-head">
+          <span>🤖 Model Registry (MLflow)</span>
+          <span style="font-size:.75rem;color:var(--muted);font-weight:400">MLflow tracking activo</span>
+        </div>
+        <table><thead><tr>
+          <th>Modelo</th><th>Versión</th><th>F1-Score</th><th>Estado</th><th>Acción</th>
+        </tr></thead><tbody>
+          <tr>
+            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">CNN1D_IDS</td>
+            <td>v3.2.1</td>
+            <td style="color:var(--success);font-weight:700">0.9741</td>
+            <td><span class="pill pill-ok">champion</span></td>
+            <td><button class="btn-role-action" style="background:rgba(16,185,129,.15);color:#34d399" onclick="alert('Modelo champion ya activo en producción')">En producción</button></td>
+          </tr>
+          <tr>
+            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">RandomForest_IDS</td>
+            <td>v2.8.0</td>
+            <td style="color:var(--success);font-weight:700">0.9614</td>
+            <td><span class="pill" style="background:rgba(14,165,233,.15);color:#38bdf8">challenger</span></td>
+            <td><button class="btn-role-action" onclick="promoteModel()">Promover Champion</button></td>
+          </tr>
+          <tr>
+            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">XGBoost_IDS</td>
+            <td>v1.4.2</td>
+            <td style="color:var(--muted)">0.9389</td>
+            <td><span class="pill" style="background:rgba(100,116,139,.12);color:var(--muted)">archived</span></td>
+            <td><button class="btn-role-action" style="opacity:.5;cursor:default">Archivado</button></td>
+          </tr>
+        </tbody></table>
+      </div>`;
+  } else {
+    panelsEl.innerHTML = `
+      <div class="dash-table-wrap" style="margin-bottom:1rem">
+        <div class="dash-table-head">
+          <span>⚗ Experimentos A/B (MLflow)</span>
+          <span style="font-size:.75rem;color:var(--muted);font-weight:400">Solo lectura</span>
+        </div>
+        <table><thead><tr>
+          <th>Experimento</th><th>Modelo A</th><th>Modelo B</th><th>Métrica</th><th>Ganador</th>
+        </tr></thead><tbody>
+          <tr>
+            <td style="color:var(--primary)">CNN vs RF — Q2 2026</td>
+            <td style="font-family:'JetBrains Mono',monospace">CNN1D v3.2</td>
+            <td style="font-family:'JetBrains Mono',monospace">RF v2.8</td>
+            <td style="color:var(--success);font-weight:700">F1: 0.9741 vs 0.9614</td>
+            <td><span class="pill pill-ok">CNN1D</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--primary)">Latencia bajo carga</td>
+            <td style="font-family:'JetBrains Mono',monospace">CNN1D v3.2</td>
+            <td style="font-family:'JetBrains Mono',monospace">XGB v1.4</td>
+            <td>P99: 11.8ms vs 18.4ms</td>
+            <td><span class="pill pill-ok">CNN1D</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--primary)">False Positive Rate</td>
+            <td style="font-family:'JetBrains Mono',monospace">RF v2.8</td>
+            <td style="font-family:'JetBrains Mono',monospace">XGB v1.4</td>
+            <td style="color:var(--warning)">FPR: 0.021 vs 0.038</td>
+            <td><span class="pill" style="background:rgba(14,165,233,.15);color:#38bdf8">RF v2.8</span></td>
+          </tr>
+        </tbody></table>
+      </div>
+      <div class="dash-table-wrap" style="margin-bottom:1rem">
+        <div class="dash-table-head">
+          <span>🛡 CVE Quick View — Top amenazas activas</span>
+          <span style="font-size:.75rem;color:var(--muted);font-weight:400">NVD feed actualizado hoy</span>
+        </div>
+        <table><thead><tr>
+          <th>CVE ID</th><th>CVSS</th><th>Producto</th><th>Estado</th><th>Acción</th>
+        </tr></thead><tbody>
+          <tr>
+            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">CVE-2024-3094</td>
+            <td><span class="pill pill-c">10.0</span></td>
+            <td>XZ Utils ≤ 5.6.1</td>
+            <td><span class="pill pill-h">Monitoreado</span></td>
+            <td><button class="btn-role-action" onclick="openCVEModal()">Ver detalles</button></td>
+          </tr>
+          <tr>
+            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">CVE-2024-6387</td>
+            <td><span class="pill pill-c">8.1</span></td>
+            <td>OpenSSH &lt; 9.8p1</td>
+            <td><span class="pill pill-c">Crítico</span></td>
+            <td><button class="btn-role-action" onclick="openCVEModal()">Ver detalles</button></td>
+          </tr>
+          <tr>
+            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">CVE-2024-4577</td>
+            <td><span class="pill pill-h">9.8</span></td>
+            <td>PHP CGI Windows</td>
+            <td><span class="pill pill-h">Parcheado</span></td>
+            <td><button class="btn-role-action" onclick="openCVEModal()">Ver detalles</button></td>
+          </tr>
+        </tbody></table>
+      </div>`;
+  }
+
+  // Action buttons (role-filtered)
+  const actionsEl = document.getElementById('dashActions');
+  const commonActions = `
+    <button class="dash-btn" onclick="generatePDF()">📄 Generar Reporte PDF</button>
+    <button class="dash-btn" onclick="openComplianceModal()">✅ Evaluación Compliance</button>
+    <button class="dash-btn" onclick="openCVEModal()">🔍 Consultar CVEs</button>`;
+  const adminActions = `
+    <button class="dash-btn dash-btn-accent" onclick="openTenantConfig()">⚙ Configurar Tenant</button>
+    <button class="dash-btn dash-btn-accent" onclick="openUserMgmt()">👥 Gestionar Usuarios</button>`;
+  actionsEl.innerHTML = commonActions + (u.role === 'admin' ? adminActions : '');
+
   dash.scrollIntoView({ behavior: 'smooth' });
 
-  // Animar contadores del dashboard
+  // Animate counters
   animateDashCounter('dcAlertas',    47,  false);
   animateDashCounter('dcBloqueados', 128, false);
   animateDashCounter('dcFlujos',     14832, true);
+  if (u.role === 'admin') {
+    animateDashCounter('dcUsers',  6, false);
+    animateDashCounter('dcModels', 3, false);
+  }
 
-  // Llenar tabla de alertas
+  // Live alerts table
   fillDashTable();
   setInterval(addDashRow, 4000);
+}
+
+function promoteAnalyst() {
+  const confirmed = confirm('¿Promover usuario "analyst" al rol de admin?\n\nEsta acción requiere confirmación en la API.');
+  if (confirmed) alert('✅ Solicitud enviada al endpoint:\nPATCH /api/v1/users/analyst/role\n\n(Disponible con API activa en producción)');
+}
+
+function promoteModel() {
+  const confirmed = confirm('¿Promover RandomForest_IDS v2.8.0 a modelo champion?\n\nEl modelo actual CNN1D v3.2.1 pasará a estado challenger.');
+  if (confirmed) alert('✅ Solicitud enviada al endpoint:\nPOST /api/v1/models/rf-ids-v280/promote\n\nMLflow actualizará el Model Registry.\n(Disponible con API activa en producción)');
+}
+
+function openTenantConfig() {
+  alert('⚙ Configuración de Tenant — acme-corp\n\n• Nombre: acme-corp\n• Plan: Enterprise\n• Usuarios máx: 50\n• Retención de logs: 365 días\n• MFA requerido: Sí\n• IP Allowlist: 0.0.0.0/0\n\nModificaciones disponibles en:\nPATCH /api/v1/tenants/acme-corp\n(Disponible con API activa en producción)');
+}
+
+function openUserMgmt() {
+  alert('👥 Gestión de Usuarios\n\nEndpoints disponibles (admin only):\n• GET    /api/v1/users\n• POST   /api/v1/users\n• PATCH  /api/v1/users/{id}/role\n• DELETE /api/v1/users/{id}\n\n(Disponible con API activa en producción)');
 }
 
 function animateDashCounter(id, target, sep) {

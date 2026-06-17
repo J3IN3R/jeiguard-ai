@@ -2,6 +2,130 @@
 
 ---
 
+## [2.0.0] — 2026-06-17
+
+### 15 mejoras de escalabilidad y valor enterprise
+
+#### Mejora 1 — Capa de Persistencia PostgreSQL (`database.py`)
+- ORM completo con SQLAlchemy 2.0 async y asyncpg
+- 11 entidades: Tenant, User, UserSession, AlertRecord, Incident, Report, AuditLog, CVECorrelation, ComplianceControl, ModelRegistry, IncidentAlert
+- Multi-tenant con aislamiento total por tenant_id
+- Índices optimizados para queries de alto rendimiento
+- Soporte JSONB nativo para datos semiestructurados
+
+#### Mejora 2 — Autenticación y RBAC (`auth_service.py`)
+- JWT Bearer tokens: access (30 min) + refresh (7 días)
+- 5 roles jerárquicos: super_admin > admin > analyst > viewer > readonly
+- bcrypt (12 rounds) para hash de contraseñas
+- Bloqueo automático por intentos fallidos (5 intentos → 15 min lockout)
+- 8 endpoints: register, login, refresh, logout, me, sessions, users, role
+- Audit trail completo en PostgreSQL de toda acción de usuario
+- Preparado para MFA TOTP y OIDC/SSO
+
+#### Mejora 3 — Reportes Ejecutivos PDF (`report_service.py`)
+- Motor PDF con ReportLab: reportes profesionales con paleta corporativa JeiGuard
+- 5 tipos: executive, technical, compliance, incident, threat_hunt
+- Portada corporativa, KPIs visuales, tablas de ataques, gráficos de distribución
+- Recomendaciones estratégicas automáticas basadas en alertas detectadas
+- Download endpoint con control de descargas y audit trail
+
+#### Mejora 4 — Motor de Compliance (`compliance_service.py`)
+- 3 frameworks: NIST CSF 2.0 (22 controles), SOC 2 Type II (14 controles), ISO 27001:2022 (16 controles)
+- Evaluación automática basada en el estado del sistema IDS
+- Score de cumplimiento por categoría (0-100)
+- Gap analysis con recomendaciones priorizadas (HIGH/MEDIUM/LOW)
+- Dashboard consolidado multi-framework con postura global
+- Evidencia automática generada desde alertas y componentes activos
+
+#### Mejora 5 — Correlación CVE/NVD (`cve_correlation_service.py`)
+- Integración con NVD NIST API v2.0 con fallback estático curado
+- 52 CVEs mapeados a las 7 categorías de ataque (DoS, R2L, U2R, Backdoor, etc.)
+- Scores CVSS v3.1 con vectores de ataque y severidad
+- Cache en PostgreSQL con TTL de 24 horas para evitar rate-limiting
+- Dashboard de exposición: qué CVEs activos tiene el tenant según sus alertas
+- Enriquecimiento automático de alertas con CVEs relevantes
+
+#### Mejora 6 — MLflow Model Registry (`mlflow_tracking.py`)
+- Registro de experimentos de entrenamiento con métricas completas (accuracy, F1, FPR, ROC-AUC, latencia)
+- Versionado semántico de modelos: champion/challenger pattern
+- A/B testing estadístico entre modelos con recomendación automática
+- Promoción de versiones: staging → production → archived
+- Integración con servidor MLflow externo (http://localhost:5000)
+
+#### Mejora 7 — OpenTelemetry Distribuido (`otel_tracing.py`)
+- Trazas distribuidas exportadas a Jaeger vía OTLP gRPC
+- Métricas custom: flows_processed, alerts_generated, inference_duration, kafka_lag
+- Auto-instrumentación de FastAPI, httpx y SQLAlchemy
+- Spans predefinidos para cada etapa del pipeline IDS
+- Modo no-op cuando OTEL no está disponible (no rompe el sistema)
+- Clase JeiGuardMetrics singleton con 9 métricas operacionales
+
+#### Mejora 8 — WebSocket Gateway (`websocket_gateway.py`)
+- Streaming de alertas en tiempo real autenticado con JWT
+- ConnectionManager multi-tenant con broadcast aislado por organización
+- Filtros por nivel y categoría de ataque en la URL de conexión
+- Comandos dinámicos: subscribe/unsubscribe/ping
+- Heartbeat cada 30s con manejo de desconexiones
+- Buffer de 1000 mensajes por cliente con backpressure management
+
+#### Mejora 9 — Python SDK Oficial (`sdk/`)
+- JeiGuardClient (síncrono): login, predict, get_alerts, get_models, compliance, CVEs, PDF
+- JeiGuardAsyncClient: full async con stream_alerts() AsyncIterator
+- Retry automático con exponential backoff (3 intentos)
+- Data classes tipados: AlertSummary, PredictionResult, ModelInfo, CVEDetail
+- Excepciones específicas: AuthenticationError, AuthorizationError, NotFoundError
+
+#### Mejora 10 — Terraform Azure AKS (`terraform/azure/main.tf`)
+- AKS cluster enterprise con zonas de disponibilidad (1, 2, 3)
+- Azure Event Hubs con Kafka API (5 topics)
+- PostgreSQL Flexible Server 16 con HA Zone-Redundant
+- Azure Cache for Redis Premium con shard clustering
+- Container Registry Premium con geo-replicación
+- Key Vault + Azure Monitor + Application Insights
+- WAF y Bastion incluidos
+
+#### Mejora 11 — Terraform GCP GKE (`terraform/gcp/main.tf`)
+- GKE Standard con Workload Identity, Binary Authorization, Private cluster
+- Cloud Pub/Sub (Kafka API compatible) con 5 topics
+- Cloud SQL for PostgreSQL 16 con HA y CMEK (Cloud KMS)
+- Memorystore for Redis con auth y TLS
+- Artifact Registry con tags inmutables
+- Cloud Armor WAF: protección SQLi, XSS, rate limiting
+- Secret Manager + OpenTelemetry (Cloud Trace)
+
+#### Mejora 12 — Kubernetes Operator + CRDs (`k8s_operator/operator.py`)
+- CRDs: JeiGuardDeployment, JeiGuardSensor
+- Operator con Kopf: create/update/delete/reconcile handlers
+- Provisioning automático de nuevos tenants en K8s
+- Reconciliación periódica cada 60 segundos
+- HPA automático basado en métricas de negocio
+- Generador de manifiestos YAML para CRDs
+
+#### Mejora 13 — API Gateway unificado (`main_api.py`)
+- FastAPI con todos los routers integrados
+- CORS configurado para dashboards externos
+- Security headers automáticos (HSTS, X-Frame-Options, X-XSS-Protection)
+- Middleware de latencia con X-Process-Time-Ms header
+- Lifespan async: inicializa OTEL, DB y métricas al arrancar
+
+#### Mejora 14 — Docker Compose Enterprise (`docker-compose.yml`)
+- +4 servicios: PostgreSQL 16, Redis 7.2, MLflow, Jaeger
+- +1 herramienta: pgAdmin para gestión visual de BD
+- Volúmenes persistentes para todos los nuevos servicios
+- Health checks en PostgreSQL y Redis
+- Subnet VPC con CIDR definido (172.20.0.0/16)
+
+#### Mejora 15 — CI/CD Enterprise (`ci.yml`)
+- +6 jobs: quality, tests, dependency-audit, integration-tests, docker-build, container-scan, sbom, terraform-validate
+- Bandit: análisis SAST de seguridad estático
+- pip-audit: auditoría de vulnerabilidades en dependencias
+- Trivy: escaneo de vulnerabilidades en imagen Docker
+- Syft: generación de SBOM (Software Bill of Materials) en formato SPDX
+- Docker multi-arch: linux/amd64 + linux/arm64
+- Validación de Terraform para AWS, Azure y GCP
+
+---
+
 ## [1.0.1] — 2026-05-18
 
 ### 12 mejoras implementadas

@@ -662,6 +662,35 @@
     .cvss-high { color: #ef4444; font-weight: 700; }
     .cvss-med  { color: #f59e0b; font-weight: 700; }
     .cvss-low  { color: #22c55e; font-weight: 700; }
+    /* ── Toast API notifications ── */
+    .api-toast {
+      display: flex; align-items: center; gap: .5rem;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; padding: .55rem .9rem;
+      font-size: .75rem; font-weight: 600; pointer-events: auto;
+      opacity: 0; transform: translateX(1rem);
+      transition: opacity .25s, transform .25s;
+      box-shadow: 0 4px 20px rgba(0,0,0,.35);
+    }
+    .api-toast.toast-show { opacity: 1; transform: translateX(0); }
+    .toast-method {
+      padding: .15rem .45rem; border-radius: 4px;
+      font-size: .68rem; font-weight: 800; letter-spacing: .04em;
+    }
+    .toast-path { color: var(--text); font-family: 'JetBrains Mono', monospace; }
+    .toast-code { font-family: 'JetBrains Mono', monospace; font-weight: 800; }
+    /* ── Form inputs ── */
+    .form-group { display: flex; flex-direction: column; gap: .35rem; }
+    .form-label { font-size: .75rem; font-weight: 600; color: var(--muted); letter-spacing: .03em; }
+    .form-input {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: .55rem .85rem;
+      font-size: .85rem; color: var(--text);
+      font-family: 'Inter', sans-serif; outline: none;
+      transition: border-color .2s;
+    }
+    .form-input:focus { border-color: var(--primary); }
+    .form-input option { background: var(--bg2); }
   </style>
 </head>
 <body>
@@ -1602,40 +1631,11 @@ function showDashboard(username, u) {
       <div class="dash-table-wrap" style="margin-bottom:1rem">
         <div class="dash-table-head">
           <span>👥 Gestión de Usuarios</span>
-          <span style="font-size:.75rem;color:var(--muted);font-weight:400">Tenant: ${u.tenant}</span>
+          <button class="btn-role-action" style="font-size:.75rem" onclick="openCreateUser()">+ Nuevo usuario</button>
         </div>
         <table><thead><tr>
-          <th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Acción</th>
-        </tr></thead><tbody>
-          <tr>
-            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">admin</td>
-            <td>Jeiner Tello</td>
-            <td><span class="pill" style="background:rgba(99,102,241,.18);color:#818cf8">admin</span></td>
-            <td><span class="pill pill-ok">activo</span></td>
-            <td><button class="btn-role-action" onclick="alert('Acción solo disponible con API activa')">Editar</button></td>
-          </tr>
-          <tr>
-            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">analyst</td>
-            <td>Ana García</td>
-            <td><span class="pill" style="background:rgba(14,165,233,.15);color:#38bdf8">analyst</span></td>
-            <td><span class="pill pill-ok">activo</span></td>
-            <td><button class="btn-role-action" onclick="promoteAnalyst()">Promover</button></td>
-          </tr>
-          <tr>
-            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">viewer_01</td>
-            <td>Carlos Ruiz</td>
-            <td><span class="pill" style="background:rgba(100,116,139,.15);color:var(--muted)">viewer</span></td>
-            <td><span class="pill pill-ok">activo</span></td>
-            <td><button class="btn-role-action" onclick="alert('Acción solo disponible con API activa')">Editar</button></td>
-          </tr>
-          <tr>
-            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">readonly_ext</td>
-            <td>Maria López</td>
-            <td><span class="pill" style="background:rgba(100,116,139,.1);color:var(--muted)">readonly</span></td>
-            <td><span class="pill" style="background:rgba(239,68,68,.1);color:#f87171">inactivo</span></td>
-            <td><button class="btn-role-action" onclick="alert('Acción solo disponible con API activa')">Activar</button></td>
-          </tr>
-        </tbody></table>
+          <th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Acciones</th>
+        </tr></thead><tbody id="usersTbody"></tbody></table>
       </div>
       <div class="dash-table-wrap" style="margin-bottom:1rem">
         <div class="dash-table-head">
@@ -1644,30 +1644,10 @@ function showDashboard(username, u) {
         </div>
         <table><thead><tr>
           <th>Modelo</th><th>Versión</th><th>F1-Score</th><th>Estado</th><th>Acción</th>
-        </tr></thead><tbody>
-          <tr>
-            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">CNN1D_IDS</td>
-            <td>v3.2.1</td>
-            <td style="color:var(--success);font-weight:700">0.9741</td>
-            <td><span class="pill pill-ok">champion</span></td>
-            <td><button class="btn-role-action" style="background:rgba(16,185,129,.15);color:#34d399" onclick="alert('Modelo champion ya activo en producción')">En producción</button></td>
-          </tr>
-          <tr>
-            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">RandomForest_IDS</td>
-            <td>v2.8.0</td>
-            <td style="color:var(--success);font-weight:700">0.9614</td>
-            <td><span class="pill" style="background:rgba(14,165,233,.15);color:#38bdf8">challenger</span></td>
-            <td><button class="btn-role-action" onclick="promoteModel()">Promover Champion</button></td>
-          </tr>
-          <tr>
-            <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">XGBoost_IDS</td>
-            <td>v1.4.2</td>
-            <td style="color:var(--muted)">0.9389</td>
-            <td><span class="pill" style="background:rgba(100,116,139,.12);color:var(--muted)">archived</span></td>
-            <td><button class="btn-role-action" style="opacity:.5;cursor:default">Archivado</button></td>
-          </tr>
-        </tbody></table>
+        </tr></thead><tbody id="modelsTbody"></tbody></table>
       </div>`;
+    renderUsersTable();
+    renderModelsTable();
   } else {
     panelsEl.innerHTML = `
       <div class="dash-table-wrap" style="margin-bottom:1rem">
@@ -1714,21 +1694,21 @@ function showDashboard(username, u) {
             <td><span class="pill pill-c">10.0</span></td>
             <td>XZ Utils ≤ 5.6.1</td>
             <td><span class="pill pill-h">Monitoreado</span></td>
-            <td><button class="btn-role-action" onclick="openCVEModal()">Ver detalles</button></td>
+            <td><button class="btn-role-action" onclick="openCVEs()">Ver detalles</button></td>
           </tr>
           <tr>
             <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">CVE-2024-6387</td>
             <td><span class="pill pill-c">8.1</span></td>
             <td>OpenSSH &lt; 9.8p1</td>
             <td><span class="pill pill-c">Crítico</span></td>
-            <td><button class="btn-role-action" onclick="openCVEModal()">Ver detalles</button></td>
+            <td><button class="btn-role-action" onclick="openCVEs()">Ver detalles</button></td>
           </tr>
           <tr>
             <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">CVE-2024-4577</td>
             <td><span class="pill pill-h">9.8</span></td>
             <td>PHP CGI Windows</td>
             <td><span class="pill pill-h">Parcheado</span></td>
-            <td><button class="btn-role-action" onclick="openCVEModal()">Ver detalles</button></td>
+            <td><button class="btn-role-action" onclick="openCVEs()">Ver detalles</button></td>
           </tr>
         </tbody></table>
       </div>`;
@@ -1738,11 +1718,11 @@ function showDashboard(username, u) {
   const actionsEl = document.getElementById('dashActions');
   const commonActions = `
     <button class="dash-btn" onclick="generatePDF()">📄 Generar Reporte PDF</button>
-    <button class="dash-btn" onclick="openComplianceModal()">✅ Evaluación Compliance</button>
-    <button class="dash-btn" onclick="openCVEModal()">🔍 Consultar CVEs</button>`;
+    <button class="dash-btn" onclick="openCompliance()">✅ Evaluación Compliance</button>
+    <button class="dash-btn" onclick="openCVEs()">🔍 Consultar CVEs</button>`;
   const adminActions = `
     <button class="dash-btn dash-btn-accent" onclick="openTenantConfig()">⚙ Configurar Tenant</button>
-    <button class="dash-btn dash-btn-accent" onclick="openUserMgmt()">👥 Gestionar Usuarios</button>`;
+    <button class="dash-btn dash-btn-accent" onclick="openCreateUser()">👥 Nuevo Usuario</button>`;
   actionsEl.innerHTML = commonActions + (u.role === 'admin' ? adminActions : '');
 
   dash.scrollIntoView({ behavior: 'smooth' });
@@ -1761,22 +1741,186 @@ function showDashboard(username, u) {
   setInterval(addDashRow, 4000);
 }
 
-function promoteAnalyst() {
-  const confirmed = confirm('¿Promover usuario "analyst" al rol de admin?\n\nEsta acción requiere confirmación en la API.');
-  if (confirmed) alert('✅ Solicitud enviada al endpoint:\nPATCH /api/v1/users/analyst/role\n\n(Disponible con API activa en producción)');
+// ── In-memory state (simulates DB / API responses) ────────────────────
+let USERS = [
+  { id:'admin',        name:'Jeiner Tello', role:'admin',    status:'activo',   tenant:'acme-corp' },
+  { id:'analyst',      name:'Ana García',   role:'analyst',  status:'activo',   tenant:'acme-corp' },
+  { id:'viewer_01',    name:'Carlos Ruiz',  role:'viewer',   status:'activo',   tenant:'acme-corp' },
+  { id:'readonly_ext', name:'Maria López',  role:'readonly', status:'inactivo', tenant:'acme-corp' },
+];
+
+let MODELS = [
+  { id:'cnn1d-v321',   name:'CNN1D_IDS',        version:'v3.2.1', f1:'0.9741', status:'champion'   },
+  { id:'rf-ids-v280',  name:'RandomForest_IDS', version:'v2.8.0', f1:'0.9614', status:'challenger' },
+  { id:'xgb-ids-v142', name:'XGBoost_IDS',      version:'v1.4.2', f1:'0.9389', status:'archived'   },
+];
+
+let TENANT_CFG = {
+  name: 'acme-corp', plan: 'Enterprise', maxUsers: 50,
+  logRetention: 365, mfaRequired: true, ipAllowlist: '0.0.0.0/0',
+};
+
+// ── Render helpers ───────────────────────────────────────────────────
+const ROLE_PILL = {
+  admin:    '<span class="pill" style="background:rgba(99,102,241,.18);color:#818cf8">admin</span>',
+  analyst:  '<span class="pill" style="background:rgba(14,165,233,.15);color:#38bdf8">analyst</span>',
+  viewer:   '<span class="pill" style="background:rgba(100,116,139,.15);color:var(--muted)">viewer</span>',
+  readonly: '<span class="pill" style="background:rgba(100,116,139,.1);color:var(--muted)">readonly</span>',
+};
+const STATUS_PILL = {
+  activo:   '<span class="pill pill-ok">activo</span>',
+  inactivo: '<span class="pill" style="background:rgba(239,68,68,.1);color:#f87171">inactivo</span>',
+};
+
+function renderUsersTable() {
+  const tbody = document.getElementById('usersTbody');
+  if (!tbody) return;
+  tbody.innerHTML = USERS.map(u => `<tr>
+    <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">${u.id}</td>
+    <td>${u.name}</td>
+    <td>${ROLE_PILL[u.role] || u.role}</td>
+    <td>${STATUS_PILL[u.status] || u.status}</td>
+    <td style="display:flex;gap:.4rem;flex-wrap:wrap">
+      <button class="btn-role-action" onclick="openEditUser('${u.id}')">Editar</button>
+      <button class="btn-role-action" style="background:rgba(${u.status==='activo'?'239,68,68':'16,185,129'},.1);color:${u.status==='activo'?'#f87171':'#34d399'}" onclick="toggleUserStatus('${u.id}')">${u.status==='activo'?'Desactivar':'Activar'}</button>
+      ${u.id !== 'admin' ? `<button class="btn-role-action" style="background:rgba(239,68,68,.08);color:#f87171" onclick="deleteUser('${u.id}')">Eliminar</button>` : ''}
+    </td>
+  </tr>`).join('');
+  // update users KPI counter
+  const el = document.getElementById('dcUsers');
+  if (el) el.textContent = USERS.filter(u => u.status === 'activo').length;
 }
 
-function promoteModel() {
-  const confirmed = confirm('¿Promover RandomForest_IDS v2.8.0 a modelo champion?\n\nEl modelo actual CNN1D v3.2.1 pasará a estado challenger.');
-  if (confirmed) alert('✅ Solicitud enviada al endpoint:\nPOST /api/v1/models/rf-ids-v280/promote\n\nMLflow actualizará el Model Registry.\n(Disponible con API activa en producción)');
+function renderModelsTable() {
+  const tbody = document.getElementById('modelsTbody');
+  if (!tbody) return;
+  tbody.innerHTML = MODELS.map(m => {
+    const f1Color = parseFloat(m.f1) >= 0.97 ? 'var(--success)' : parseFloat(m.f1) >= 0.95 ? 'var(--primary)' : 'var(--muted)';
+    let statusPill, actionBtn;
+    if (m.status === 'champion') {
+      statusPill = '<span class="pill pill-ok">champion</span>';
+      actionBtn  = '<button class="btn-role-action" style="background:rgba(16,185,129,.15);color:#34d399;cursor:default">En producción</button>';
+    } else if (m.status === 'challenger') {
+      statusPill = '<span class="pill" style="background:rgba(14,165,233,.15);color:#38bdf8">challenger</span>';
+      actionBtn  = `<button class="btn-role-action" onclick="promoteModel('${m.id}')">Promover Champion</button>`;
+    } else {
+      statusPill = '<span class="pill" style="background:rgba(100,116,139,.12);color:var(--muted)">archived</span>';
+      actionBtn  = `<button class="btn-role-action" style="opacity:.5;cursor:default">Archivado</button>`;
+    }
+    return `<tr>
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">${m.name}</td>
+      <td>${m.version}</td>
+      <td style="color:${f1Color};font-weight:700">${m.f1}</td>
+      <td>${statusPill}</td>
+      <td>${actionBtn}</td>
+    </tr>`;
+  }).join('');
 }
 
+// ── User CRUD ────────────────────────────────────────────────────────
+function openCreateUser() {
+  document.getElementById('cuForm').reset();
+  document.getElementById('createUserModal').classList.add('open');
+}
+
+function saveCreateUser() {
+  const id     = document.getElementById('cuId').value.trim();
+  const name   = document.getElementById('cuName').value.trim();
+  const role   = document.getElementById('cuRole').value;
+  const status = document.getElementById('cuStatus').value;
+  if (!id || !name) { showToast('ERROR','Todos los campos son requeridos','400'); return; }
+  if (USERS.find(u => u.id === id)) { showToast('ERROR','Usuario ya existe','409'); return; }
+  USERS.push({ id, name, role, status, tenant: 'acme-corp' });
+  renderUsersTable();
+  document.getElementById('createUserModal').classList.remove('open');
+  showToast('POST','/api/v1/users','201');
+}
+
+function openEditUser(userId) {
+  const u = USERS.find(x => x.id === userId);
+  if (!u) return;
+  document.getElementById('euId').value     = u.id;
+  document.getElementById('euName').value   = u.name;
+  document.getElementById('euRole').value   = u.role;
+  document.getElementById('euStatus').value = u.status;
+  document.getElementById('editUserModal').classList.add('open');
+}
+
+function saveEditUser() {
+  const id     = document.getElementById('euId').value;
+  const name   = document.getElementById('euName').value.trim();
+  const role   = document.getElementById('euRole').value;
+  const status = document.getElementById('euStatus').value;
+  if (!name) { showToast('ERROR','El nombre es requerido','400'); return; }
+  const u = USERS.find(x => x.id === id);
+  if (!u) return;
+  u.name = name; u.role = role; u.status = status;
+  renderUsersTable();
+  document.getElementById('editUserModal').classList.remove('open');
+  showToast('PATCH','/api/v1/users/' + id,'200');
+}
+
+function toggleUserStatus(userId) {
+  const u = USERS.find(x => x.id === userId);
+  if (!u) return;
+  u.status = u.status === 'activo' ? 'inactivo' : 'activo';
+  renderUsersTable();
+  showToast('PATCH','/api/v1/users/' + userId + '/status','200');
+}
+
+function deleteUser(userId) {
+  USERS = USERS.filter(u => u.id !== userId);
+  renderUsersTable();
+  showToast('DELETE','/api/v1/users/' + userId,'204');
+}
+
+// ── Model promotion ──────────────────────────────────────────────────
+function promoteModel(modelId) {
+  const challenger = MODELS.find(m => m.id === modelId);
+  const champion   = MODELS.find(m => m.status === 'champion');
+  if (!challenger || !champion) return;
+  champion.status   = 'challenger';
+  challenger.status = 'champion';
+  renderModelsTable();
+  showToast('POST','/api/v1/models/' + modelId + '/promote','200');
+}
+
+// ── Tenant config ────────────────────────────────────────────────────
 function openTenantConfig() {
-  alert('⚙ Configuración de Tenant — acme-corp\n\n• Nombre: acme-corp\n• Plan: Enterprise\n• Usuarios máx: 50\n• Retención de logs: 365 días\n• MFA requerido: Sí\n• IP Allowlist: 0.0.0.0/0\n\nModificaciones disponibles en:\nPATCH /api/v1/tenants/acme-corp\n(Disponible con API activa en producción)');
+  document.getElementById('tcName').value        = TENANT_CFG.name;
+  document.getElementById('tcPlan').value        = TENANT_CFG.plan;
+  document.getElementById('tcMaxUsers').value    = TENANT_CFG.maxUsers;
+  document.getElementById('tcLogRet').value      = TENANT_CFG.logRetention;
+  document.getElementById('tcMFA').checked       = TENANT_CFG.mfaRequired;
+  document.getElementById('tcIPAllow').value     = TENANT_CFG.ipAllowlist;
+  document.getElementById('tenantModal').classList.add('open');
 }
 
-function openUserMgmt() {
-  alert('👥 Gestión de Usuarios\n\nEndpoints disponibles (admin only):\n• GET    /api/v1/users\n• POST   /api/v1/users\n• PATCH  /api/v1/users/{id}/role\n• DELETE /api/v1/users/{id}\n\n(Disponible con API activa en producción)');
+function saveTenantConfig() {
+  TENANT_CFG.name         = document.getElementById('tcName').value;
+  TENANT_CFG.plan         = document.getElementById('tcPlan').value;
+  TENANT_CFG.maxUsers     = parseInt(document.getElementById('tcMaxUsers').value);
+  TENANT_CFG.logRetention = parseInt(document.getElementById('tcLogRet').value);
+  TENANT_CFG.mfaRequired  = document.getElementById('tcMFA').checked;
+  TENANT_CFG.ipAllowlist  = document.getElementById('tcIPAllow').value;
+  document.getElementById('tenantModal').classList.remove('open');
+  showToast('PATCH','/api/v1/tenants/' + TENANT_CFG.name,'200');
+}
+
+// ── Toast notifications ──────────────────────────────────────────────
+function showToast(method, path, code) {
+  const container = document.getElementById('apiToastContainer');
+  const isError   = code === '400' || code === '409';
+  const colors    = { 'POST':'#38bdf8','PATCH':'#fbbf24','DELETE':'#f87171','GET':'#34d399','ERROR':'#f87171' };
+  const toast = document.createElement('div');
+  toast.className = 'api-toast';
+  toast.innerHTML = `
+    <span class="toast-method" style="background:${colors[method]||'#94a3b8'};color:#0f172a">${method}</span>
+    <span class="toast-path">${path}</span>
+    <span class="toast-code" style="color:${isError?'#f87171':'#34d399'}">${code}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.classList.add('toast-show'), 10);
+  setTimeout(() => { toast.classList.remove('toast-show'); setTimeout(() => toast.remove(), 300); }, 3200);
 }
 
 function animateDashCounter(id, target, sep) {

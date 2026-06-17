@@ -43,6 +43,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from pydantic import BaseModel, EmailStr, Field, field_validator
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy import and_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -68,6 +70,7 @@ API_VERSION:             str = "v1"
 
 router = APIRouter(prefix=f"/api/{API_VERSION}/auth", tags=["Authentication"])
 bearer_scheme = HTTPBearer(auto_error=False)
+limiter = Limiter(key_func=get_remote_address)
 
 # ── Schemas Pydantic ──────────────────────────────────────────────────────────
 
@@ -422,6 +425,7 @@ async def register(
 
 
 @router.post("/login", response_model=TokenResponse)
+@limiter.limit("60/minute")
 async def login(
     BODY: LoginRequest,
     REQUEST: Request,

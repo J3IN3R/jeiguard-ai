@@ -30,6 +30,9 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from auth_service import router as auth_router
 from compliance_service import router as compliance_router
@@ -38,6 +41,10 @@ from mlflow_tracking import router as mlflow_router
 from otel_tracing import JeiGuardMetrics, setup_telemetry
 from report_service import router as report_router
 from websocket_gateway import router as ws_router
+
+# ── Rate Limiter ──────────────────────────────────────────────────────────────
+
+limiter = Limiter(key_func=get_remote_address)
 
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 
@@ -62,40 +69,55 @@ async def lifespan(APP: FastAPI) -> AsyncGenerator[None, None]:
 # ── Aplicación ────────────────────────────────────────────────────────────────
 
 app = FastAPI(
-    title="JeiGuard AI — Intrusion Detection System",
+    title="JeiGuard AI",
     description="""
-## JeiGuard AI v2.0.0 — Sistema de Detección de Intrusos con IA
+## JeiGuard AI v2.0.0 — Enterprise Intrusion Detection System
 
-**Características principales:**
-- Detección de intrusos en tiempo real con CNN-1D + Random Forest (97.4% precisión)
-- Autenticación JWT con RBAC multi-tenant
-- Correlación MITRE ATT&CK y CVE/NVD
-- Compliance: NIST CSF 2.0, SOC2 Type II, ISO 27001:2022
-- Reportes ejecutivos en PDF
-- Análisis forense con LLM (Claude API)
-- Streaming de alertas en tiempo real (WebSocket)
-- Model Registry con MLflow
-- Observabilidad con OpenTelemetry + Jaeger
+AI-powered network intrusion detection with CNN-1D + Random Forest ensemble.
 
-**Autenticación:**
-Usar `POST /api/v1/auth/login` para obtener un Bearer token JWT.
-Incluirlo en el header: `Authorization: Bearer <token>`
+### Features
+- **97.4% accuracy** on NSL-KDD + CICIDS-2017 benchmarks
+- **15,000 flows/sec** real-time processing
+- **P99 latency < 12ms**
+- RBAC: readonly → viewer → analyst → admin → super_admin
+- Multi-tenant with full data isolation
+- NIST CSF compliance reporting
+- CVE correlation engine
+- MLflow model registry
+
+### Authentication
+All endpoints (except `/health`) require JWT Bearer token.
+Obtain token via `POST /api/v1/auth/login`.
     """,
     version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
     contact={
-        "name":  "Jeiner Tello Nuñez",
+        "name": "Jeiner Tello Nuñez",
         "email": "jeinertello1@gmail.com",
         "url":   "https://github.com/j3in3r/jeiguard-ai",
     },
     license_info={
-        "name": "MIT",
-        "url":  "https://opensource.org/licenses/MIT",
+        "name": "Proprietary — JeiGuard AI Enterprise License",
     },
+    openapi_tags=[
+        {"name": "auth",       "description": "Authentication and JWT management"},
+        {"name": "flows",      "description": "Network flow ingestion and ML prediction"},
+        {"name": "alerts",     "description": "Security alerts management"},
+        {"name": "compliance", "description": "NIST CSF compliance reporting"},
+        {"name": "cve",        "description": "CVE correlation and vulnerability tracking"},
+        {"name": "users",      "description": "User and tenant management (admin only)"},
+        {"name": "models",     "description": "ML model registry (MLflow integration)"},
+        {"name": "health",     "description": "Health and readiness probes"},
+    ],
     lifespan=lifespan,
 )
+
+# ── Rate limiting state ───────────────────────────────────────────────────────
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # ── Middleware ────────────────────────────────────────────────────────────────
 
@@ -145,8 +167,9 @@ app.include_router(ws_router)
 # ── Endpoints base ────────────────────────────────────────────────────────────
 
 
-@app.get("/health", tags=["System"])
-async def health_check() -> dict:
+@app.get("/health", tags=["health"])
+@limiter.limit("200/minute")
+async def health_check(REQUEST: Request) -> dict:
     """Endpoint de health check del sistema."""
     return {
         "STATUS":        "healthy",
@@ -162,7 +185,7 @@ async def health_check() -> dict:
     }
 
 
-@app.get("/", tags=["System"])
+@app.get("/", tags=["health"])
 async def root() -> dict:
     """Información básica del sistema."""
     return {

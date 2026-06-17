@@ -418,6 +418,178 @@
       .nav-links .hide-mobile { display: none; }
       .metric-item { padding: 1.25rem .75rem; }
     }
+
+    /* ── LOGIN MODAL ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.7); backdrop-filter: blur(6px);
+      align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 16px; padding: 2.5rem; width: 100%; max-width: 420px;
+      animation: slideUp .25s ease;
+    }
+    @keyframes slideUp {
+      from { opacity:0; transform: translateY(20px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+    .modal-logo {
+      display: flex; align-items: center; gap: .5rem;
+      font-weight: 900; font-size: 1.3rem; margin-bottom: 1.75rem;
+      justify-content: center;
+    }
+    .modal-logo span { color: var(--primary); }
+    .modal h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: .35rem; }
+    .modal-sub { font-size: .83rem; color: var(--muted); margin-bottom: 1.75rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block; font-size: .8rem; font-weight: 600;
+      color: var(--muted); margin-bottom: .4rem; letter-spacing: .03em;
+    }
+    .form-group input {
+      width: 100%; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 8px; padding: .7rem 1rem; font-size: .9rem;
+      color: var(--text); font-family: 'Inter', sans-serif;
+      outline: none; transition: border-color .2s;
+    }
+    .form-group input:focus { border-color: var(--primary); }
+    .form-group input::placeholder { color: var(--muted); }
+    .demo-hint {
+      background: rgba(14,165,233,.07); border: 1px solid rgba(14,165,233,.2);
+      border-radius: 8px; padding: .75rem 1rem; margin-bottom: 1.25rem;
+      font-size: .78rem; color: var(--muted);
+    }
+    .demo-hint strong { color: var(--primary); }
+    .btn-login {
+      width: 100%; background: var(--primary); color: #fff;
+      border: none; border-radius: 8px; padding: .8rem;
+      font-size: .95rem; font-weight: 700; cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: background .2s, transform .1s;
+    }
+    .btn-login:hover { background: var(--primary2); transform: translateY(-1px); }
+    .btn-login:active { transform: translateY(0); }
+    .btn-login.loading { opacity: .7; cursor: default; }
+    .modal-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: none; border: none; color: var(--muted);
+      font-size: 1.3rem; cursor: pointer; padding: .25rem .5rem;
+      border-radius: 4px; transition: color .2s;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal { position: relative; }
+    .login-error {
+      background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3);
+      color: #fca5a5; border-radius: 6px; padding: .6rem .9rem;
+      font-size: .8rem; margin-bottom: 1rem; display: none;
+    }
+
+    /* ── USER NAVBAR ── */
+    .nav-user {
+      display: none; align-items: center; gap: .75rem;
+    }
+    .nav-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 800; color: #fff; flex-shrink: 0;
+    }
+    .nav-username { font-size: .85rem; font-weight: 600; }
+    .nav-role {
+      font-size: .7rem; color: var(--primary); font-weight: 600;
+      background: rgba(14,165,233,.1); padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid rgba(14,165,233,.2);
+    }
+    .btn-logout {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); padding: .35rem .8rem; border-radius: 6px;
+      font-size: .78rem; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', sans-serif; transition: all .2s;
+    }
+    .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── DASHBOARD ── */
+    #dashboard {
+      display: none;
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      padding: 5rem clamp(1rem, 5vw, 5rem) 3rem;
+    }
+    .dash-welcome {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 2.5rem; flex-wrap: wrap;
+    }
+    .dash-avatar {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; font-weight: 900; color: #fff; flex-shrink: 0;
+    }
+    .dash-welcome h2 { font-size: 1.4rem; font-weight: 800; }
+    .dash-welcome p  { font-size: .85rem; color: var(--muted); }
+    .dash-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem; margin-bottom: 2rem;
+    }
+    .dash-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.25rem;
+    }
+    .dash-card .val {
+      font-size: 2rem; font-weight: 900; letter-spacing: -.03em;
+    }
+    .dash-card .lbl { font-size: .78rem; color: var(--muted); margin-top: .2rem; }
+    .dash-card .trend {
+      font-size: .72rem; margin-top: .5rem; font-weight: 600;
+    }
+    .trend-up   { color: var(--red); }
+    .trend-down { color: var(--green); }
+    .trend-ok   { color: var(--primary); }
+    .dash-table-wrap {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+    }
+    .dash-table-head {
+      padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+      font-size: .85rem; font-weight: 700;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .dash-live-dot {
+      display: inline-block; width: 7px; height: 7px;
+      border-radius: 50%; background: var(--green);
+      animation: pulse 2s infinite; margin-right: .4rem;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+    th {
+      text-align: left; padding: .6rem 1.25rem;
+      color: var(--muted); font-weight: 600; font-size: .72rem;
+      letter-spacing: .05em; text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    td { padding: .65rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,.03); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+    .pill {
+      display: inline-block; padding: .15rem .6rem;
+      border-radius: 4px; font-size: .7rem; font-weight: 700;
+    }
+    .pill-c { background: rgba(239,68,68,.15);  color: #f87171; }
+    .pill-h { background: rgba(245,158,11,.15); color: #fbbf24; }
+    .pill-m { background: rgba(250,204,21,.15); color: #fde047; }
+    .dash-actions {
+      display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.25rem;
+    }
+    .dash-action-btn {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: .6rem 1.1rem;
+      font-size: .82rem; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', sans-serif; color: var(--text);
+      transition: border-color .2s, background .2s;
+    }
+    .dash-action-btn:hover { border-color: var(--primary); background: rgba(14,165,233,.05); }
   </style>
 </head>
 <body>
@@ -433,9 +605,27 @@
     <a href="#api"      class="hide-mobile">API</a>
     <a href="#demo"     class="hide-mobile">Demo</a>
     <a href="#stack"    class="hide-mobile">Stack</a>
-    <a href="https://github.com/j3in3r/jeiguard-ai" target="_blank" class="btn-nav">
+    <a href="https://github.com/j3in3r/jeiguard-ai" target="_blank" class="btn-nav hide-mobile">
       ⭐ GitHub
     </a>
+    <!-- Botón login (estado sin sesión) -->
+    <button id="btnOpenLogin" onclick="openLogin()"
+      style="background:transparent;border:1px solid var(--border);color:var(--text);
+             padding:.4rem 1rem;border-radius:6px;font-size:.875rem;font-weight:600;
+             cursor:pointer;font-family:inherit;transition:all .2s;"
+      onmouseover="this.style.borderColor='var(--primary)'"
+      onmouseout="this.style.borderColor='var(--border)'">
+      🔐 Iniciar sesión
+    </button>
+    <!-- Estado logueado -->
+    <div class="nav-user" id="navUser">
+      <div class="nav-avatar" id="navAvatar">JT</div>
+      <div class="hide-mobile">
+        <div class="nav-username" id="navUsername">admin</div>
+      </div>
+      <span class="nav-role hide-mobile" id="navRole">admin</span>
+      <button class="btn-logout" onclick="logout()">Salir</button>
+    </div>
   </div>
 </nav>
 
@@ -849,6 +1039,97 @@
   </div>
 </footer>
 
+<!-- ── LOGIN MODAL ─────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="loginOverlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeLogin()">✕</button>
+    <div class="modal-logo">🛡️ <span>Jei</span>Guard<span> AI</span></div>
+    <h3>Bienvenido de nuevo</h3>
+    <p class="modal-sub">Inicia sesión para acceder al dashboard de seguridad.</p>
+
+    <div class="demo-hint">
+      <strong>Credenciales demo:</strong><br/>
+      Usuario: <strong>admin</strong> &nbsp;·&nbsp; Contraseña: <strong>Admin2026!</strong><br/>
+      Usuario: <strong>analyst</strong> &nbsp;·&nbsp; Contraseña: <strong>Analyst2026!</strong>
+    </div>
+
+    <div class="login-error" id="loginError">Usuario o contraseña incorrectos.</div>
+
+    <div class="form-group">
+      <label>USUARIO</label>
+      <input type="text" id="inputUser" placeholder="admin" autocomplete="username" />
+    </div>
+    <div class="form-group">
+      <label>CONTRASEÑA</label>
+      <input type="password" id="inputPass" placeholder="••••••••" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter') doLogin()" />
+    </div>
+    <button class="btn-login" id="btnLogin" onclick="doLogin()">Iniciar sesión</button>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ─────────────────────────────────────────────────────── -->
+<div id="dashboard">
+  <div class="dash-welcome">
+    <div class="dash-avatar" id="dashAvatar">JT</div>
+    <div>
+      <h2 id="dashWelcome">Bienvenido, admin</h2>
+      <p id="dashSub">Tenant: <strong>acme-corp</strong> &nbsp;·&nbsp; Rol: <strong>admin</strong> &nbsp;·&nbsp; Último acceso: hoy</p>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <div class="dash-card">
+      <div class="val" style="color:var(--red)" id="dcAlertas">0</div>
+      <div class="lbl">Alertas hoy</div>
+      <div class="trend trend-up" id="dcAlertasTrend">↑ +3 última hora</div>
+    </div>
+    <div class="dash-card">
+      <div class="val" style="color:var(--green)" id="dcBloqueados">0</div>
+      <div class="lbl">Amenazas bloqueadas</div>
+      <div class="trend trend-down">↓ −12% vs ayer</div>
+    </div>
+    <div class="dash-card">
+      <div class="val" style="color:var(--primary)" id="dcFlujos">0</div>
+      <div class="lbl">Flujos/seg activos</div>
+      <div class="trend trend-ok">● Operación normal</div>
+    </div>
+    <div class="dash-card">
+      <div class="val" style="color:var(--yellow)">76%</div>
+      <div class="lbl">NIST CSF Score</div>
+      <div class="trend trend-ok">↑ +4% este mes</div>
+    </div>
+  </div>
+
+  <div class="dash-table-wrap">
+    <div class="dash-table-head">
+      <span><span class="dash-live-dot"></span>Alertas recientes</span>
+      <span style="font-size:.75rem;color:var(--muted);font-weight:400">Actualización en tiempo real</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Hora</th>
+          <th>Nivel</th>
+          <th>Categoría</th>
+          <th>IP Origen</th>
+          <th>Confianza</th>
+          <th>MITRE</th>
+        </tr>
+      </thead>
+      <tbody id="dashTableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="dash-actions">
+    <button class="dash-action-btn" onclick="alert('En producción: genera reporte PDF ejecutivo')">📄 Generar reporte PDF</button>
+    <button class="dash-action-btn" onclick="alert('En producción: ejecuta evaluación NIST CSF / SOC2 / ISO 27001')">✅ Evaluación compliance</button>
+    <button class="dash-action-btn" onclick="alert('En producción: consulta CVEs del NVD para las amenazas activas')">🔍 Consultar CVEs</button>
+    <button class="dash-action-btn" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">📡 Ver WebSocket live</button>
+    <button class="dash-action-btn" onclick="window.open('https://github.com/j3in3r/jeiguard-ai','_blank')">📂 Ver código fuente</button>
+  </div>
+</div>
+
 <script>
 // ── Counter animation ──────────────────────────────────────────────────
 function animateCounters() {
@@ -1094,6 +1375,135 @@ function clearWS() {
 
 // auto-start after 1s
 setTimeout(startWS, 1000);
+
+// ── Auth ───────────────────────────────────────────────────────────────
+const USERS = {
+  admin:   { pass:'Admin2026!',   role:'admin',   name:'Jeiner Tello',  tenant:'acme-corp' },
+  analyst: { pass:'Analyst2026!', role:'analyst',  name:'Analista Demo', tenant:'acme-corp' },
+};
+
+function openLogin() {
+  document.getElementById('loginOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('inputUser').focus(), 100);
+}
+function closeLogin() {
+  document.getElementById('loginOverlay').classList.remove('open');
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('inputUser').value = '';
+  document.getElementById('inputPass').value = '';
+}
+function overlayClick(e) { if (e.target === e.currentTarget) closeLogin(); }
+
+function doLogin() {
+  const user = document.getElementById('inputUser').value.trim();
+  const pass = document.getElementById('inputPass').value;
+  const btn  = document.getElementById('btnLogin');
+  const err  = document.getElementById('loginError');
+
+  btn.textContent = 'Verificando...';
+  btn.classList.add('loading');
+  err.style.display = 'none';
+
+  setTimeout(() => {
+    const u = USERS[user];
+    if (u && u.pass === pass) {
+      closeLogin();
+      showDashboard(user, u);
+    } else {
+      err.style.display = 'block';
+      btn.textContent = 'Iniciar sesión';
+      btn.classList.remove('loading');
+      document.getElementById('inputPass').value = '';
+      document.getElementById('inputPass').focus();
+    }
+  }, 900);
+}
+
+function showDashboard(username, u) {
+  // Navbar → estado logueado
+  document.getElementById('btnOpenLogin').style.display = 'none';
+  const navUser = document.getElementById('navUser');
+  navUser.style.display = 'flex';
+  document.getElementById('navAvatar').textContent   = u.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+  document.getElementById('navUsername').textContent = username;
+  document.getElementById('navRole').textContent     = u.role;
+
+  // Dashboard
+  const dash = document.getElementById('dashboard');
+  dash.style.display = 'block';
+  document.getElementById('dashAvatar').textContent  = u.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+  document.getElementById('dashWelcome').textContent = 'Bienvenido, ' + u.name;
+  document.getElementById('dashSub').innerHTML =
+    'Tenant: <strong>' + u.tenant + '</strong> &nbsp;·&nbsp; Rol: <strong>' + u.role +
+    '</strong> &nbsp;·&nbsp; ' + new Date().toLocaleString('es-CO', {dateStyle:'medium',timeStyle:'short'});
+
+  dash.scrollIntoView({ behavior: 'smooth' });
+
+  // Animar contadores del dashboard
+  animateDashCounter('dcAlertas',    47,  false);
+  animateDashCounter('dcBloqueados', 128, false);
+  animateDashCounter('dcFlujos',     14832, true);
+
+  // Llenar tabla de alertas
+  fillDashTable();
+  setInterval(addDashRow, 4000);
+}
+
+function animateDashCounter(id, target, sep) {
+  const el = document.getElementById(id);
+  const dur = 1400, start = performance.now();
+  const upd = (now) => {
+    const p = Math.min((now - start) / dur, 1);
+    const v = Math.round(target * (1 - Math.pow(1-p, 3)));
+    el.textContent = sep ? v.toLocaleString() : v;
+    if (p < 1) requestAnimationFrame(upd);
+  };
+  requestAnimationFrame(upd);
+}
+
+const DASH_ATTACKS = [
+  { cat:'DoS_DDoS',    lvl:'CRITICAL', mitre:'T1498', ips:['192.168.1.45','10.0.0.23'] },
+  { cat:'Web_Exploit', lvl:'HIGH',     mitre:'T1190', ips:['203.0.113.55','10.1.2.34'] },
+  { cat:'Probe_Scan',  lvl:'MEDIUM',   mitre:'T1046', ips:['192.168.0.101','10.10.0.5'] },
+  { cat:'R2L',         lvl:'HIGH',     mitre:'T1110', ips:['198.51.100.42','10.0.5.100'] },
+  { cat:'Backdoor',    lvl:'CRITICAL', mitre:'T1543', ips:['172.16.0.15','10.200.1.4'] },
+];
+const PILL_CLASS = { CRITICAL:'pill-c', HIGH:'pill-h', MEDIUM:'pill-m' };
+
+function makeRow(a) {
+  const ip   = a.ips[Math.floor(Math.random()*a.ips.length)];
+  const conf = (.96 + Math.random()*.035).toFixed(3);
+  const now  = new Date().toLocaleTimeString('es-CO',{hour12:false});
+  return `<tr>
+    <td style="font-family:'JetBrains Mono',monospace;color:var(--muted)">${now}</td>
+    <td><span class="pill ${PILL_CLASS[a.lvl]||'pill-m'}">${a.lvl}</span></td>
+    <td>${a.cat}</td>
+    <td style="font-family:'JetBrains Mono',monospace;color:var(--primary)">${ip}</td>
+    <td style="color:var(--muted)">${conf}</td>
+    <td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${a.mitre}</td>
+  </tr>`;
+}
+
+function fillDashTable() {
+  const tbody = document.getElementById('dashTableBody');
+  tbody.innerHTML = '';
+  const shuffled = [...DASH_ATTACKS].sort(()=>Math.random()-.5).slice(0,5);
+  shuffled.forEach(a => tbody.insertAdjacentHTML('beforeend', makeRow(a)));
+}
+
+function addDashRow() {
+  const tbody = document.getElementById('dashTableBody');
+  const a = DASH_ATTACKS[Math.floor(Math.random()*DASH_ATTACKS.length)];
+  tbody.insertAdjacentHTML('afterbegin', makeRow(a));
+  if (tbody.children.length > 8) tbody.removeChild(tbody.lastChild);
+}
+
+function logout() {
+  document.getElementById('navUser').style.display = 'none';
+  document.getElementById('btnOpenLogin').style.display = '';
+  document.getElementById('dashboard').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 </script>
 </body>
 </html>

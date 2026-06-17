@@ -40,10 +40,12 @@ from sqlalchemy.orm import DeclarativeBase, relationship
 
 # ── Variables de entorno ──────────────────────────────────────────────────────
 
-DATABASE_URL: str = os.getenv(
+_raw_db_url: str = os.getenv(
     "DATABASE_URL",
     "postgresql+asyncpg://jeiguard:jeiguard2026@localhost:5432/jeiguard_ai",
 )
+# Railway entrega postgresql:// — asyncpg necesita postgresql+asyncpg://
+DATABASE_URL: str = _raw_db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
 # ── Base ORM ──────────────────────────────────────────────────────────────────
 

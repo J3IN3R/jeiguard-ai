@@ -89,5 +89,56 @@ TARGET_FALSE_POSITIVE_RATE: Final[float] = 0.02
 TARGET_LATENCY_MS:         Final[float] = 10.0
 
 # ── Versioning ────────────────────────────────────────────────────────────────
-MODEL_VERSION: Final[str] = "1.0.0"
-API_VERSION:   Final[str] = "v1"
+MODEL_VERSION:   Final[str] = "2.0.0"
+API_VERSION:     Final[str] = "v1"
+SYSTEM_VERSION:  Final[str] = "2.0.0"
+
+# ── Autenticación ─────────────────────────────────────────────────────────────
+MAX_LOGIN_ATTEMPTS:       Final[int] = 5
+LOCKOUT_DURATION_MINUTES: Final[int] = 15
+ACCESS_TOKEN_EXPIRE_MIN:  Final[int] = 30
+REFRESH_TOKEN_EXPIRE_DAYS: Final[int] = 7
+PASSWORD_MIN_LENGTH:      Final[int] = 12
+BCRYPT_ROUNDS:            Final[int] = 12
+
+# ── Multi-tenancy ─────────────────────────────────────────────────────────────
+TENANT_TIERS: Final[tuple[str, ...]] = (
+    "free", "starter", "professional", "enterprise"
+)
+TIER_MAX_SENSORS: Final[dict[str, int]] = {
+    "free":         5,
+    "starter":      20,
+    "professional": 100,
+    "enterprise":   1000,
+}
+TIER_MAX_USERS: Final[dict[str, int]] = {
+    "free":         10,
+    "starter":      50,
+    "professional": 500,
+    "enterprise":   10000,
+}
+
+# ── Compliance frameworks ─────────────────────────────────────────────────────
+COMPLIANCE_FRAMEWORKS: Final[tuple[str, ...]] = (
+    "NIST_CSF",
+    "SOC2",
+    "ISO27001",
+)
+
+# ── WebSocket ─────────────────────────────────────────────────────────────────
+WS_HEARTBEAT_INTERVAL_S:  Final[int] = 30
+WS_MAX_QUEUE_SIZE:        Final[int] = 1000
+WS_RECONNECT_DELAY_S:     Final[int] = 5
+
+# ── CVE Correlation ───────────────────────────────────────────────────────────
+CVE_CACHE_TTL_HOURS:      Final[int] = 24
+NVD_API_BASE_URL:         Final[str] = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+
+# ── Reportes ──────────────────────────────────────────────────────────────────
+REPORT_TYPES: Final[tuple[str, ...]] = (
+    "executive", "technical", "compliance", "incident", "threat_hunt"
+)
+
+# ── OpenTelemetry spans ───────────────────────────────────────────────────────
+OTEL_SERVICE_NAME:    Final[str] = "jeiguard-ai"
+OTEL_SERVICE_VERSION: Final[str] = SYSTEM_VERSION

@@ -1,17 +1,24 @@
 # ══════════════════════════════════════════════════════════════════════════════
-# docker-compose.yml — JeiGuard AI (Solo Infraestructura)
-# Kafka + Zookeeper + Elasticsearch + Kibana + Grafana
+# docker-compose.yml — JeiGuard AI v2.0.0 (Infraestructura Completa)
+# Kafka · Elasticsearch · Kibana · Grafana · PostgreSQL · Redis · MLflow · Jaeger
 # ══════════════════════════════════════════════════════════════════════════════
 
 networks:
   ids_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
 volumes:
   kafka_data:
   zookeeper_data:
   elasticsearch_data:
   grafana_data:
+  postgres_data:
+  redis_data:
+  mlflow_data:
+  jaeger_data:
 
 services:
 
@@ -121,3 +128,108 @@ services:
       - grafana_data:/var/lib/grafana
     ports:
       - "3000:3000"
+
+  # ── PostgreSQL — Base de datos relacional principal ──────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: ids-postgres
+    hostname: postgres
+    networks: [ids_network]
+    environment:
+      POSTGRES_DB:       jeiguard_ai
+      POSTGRES_USER:     jeiguard
+      POSTGRES_PASSWORD: jeiguard2026
+      PGDATA:            /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jeiguard -d jeiguard_ai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis — Cache de sesiones, rate limiting, CVE cache ─────────────────
+  redis:
+    image: redis:7.2-alpine
+    container_name: ids-redis
+    hostname: redis
+    networks: [ids_network]
+    command: >
+      redis-server
+      --requirepass jeiguard2026
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "jeiguard2026", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── MLflow — Model Registry y Experiment Tracking ───────────────────────
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: ids-mlflow
+    hostname: mlflow
+    networks: [ids_network]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      MLFLOW_BACKEND_STORE_URI: postgresql://jeiguard:jeiguard2026@postgres:5432/jeiguard_ai
+      MLFLOW_DEFAULT_ARTIFACT_ROOT: /mlflow/artifacts
+    volumes:
+      - mlflow_data:/mlflow/artifacts
+    ports:
+      - "5000:5000"
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://jeiguard:jeiguard2026@postgres:5432/jeiguard_ai
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+      --port 5000
+
+  # ── Jaeger — Distributed Tracing (OpenTelemetry) ─────────────────────────
+  jaeger:
+    image: jaegertracing/all-in-one:1.53
+    container_name: ids-jaeger
+    hostname: jaeger
+    networks: [ids_network]
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      SPAN_STORAGE_TYPE:      memory
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP gRPC
+      - "4318:4318"     # OTLP HTTP
+      - "6831:6831/udp" # Jaeger agent Thrift UDP
+    volumes:
+      - jaeger_data:/badger
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:14269/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── pgAdmin — Administración visual de PostgreSQL ────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:8.2
+    container_name: ids-pgadmin
+    hostname: pgadmin
+    networks: [ids_network]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL:    admin@jeiguard.ai
+      PGADMIN_DEFAULT_PASSWORD: jeiguard2026
+      PGADMIN_LISTEN_PORT:      5050
+    ports:
+      - "5050:5050"

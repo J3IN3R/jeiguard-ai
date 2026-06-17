@@ -2115,5 +2115,135 @@ function logout() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 </script>
+
+<!-- ── Toast container ───────────────────────────────────────────────── -->
+<div id="apiToastContainer" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column-reverse;gap:.5rem;pointer-events:none"></div>
+
+<!-- ── Create User Modal ─────────────────────────────────────────────── -->
+<div class="result-modal" id="createUserModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="result-box" style="max-width:440px">
+    <div class="result-head">
+      <h3>👤 Crear nuevo usuario</h3>
+      <button class="btn-close-modal" onclick="document.getElementById('createUserModal').classList.remove('open')">✕</button>
+    </div>
+    <form id="cuForm" onsubmit="event.preventDefault();saveCreateUser()" style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:.9rem">
+      <div class="form-group">
+        <label class="form-label">ID de usuario (username)</label>
+        <input id="cuId" class="form-input" type="text" placeholder="ej. jsmith" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre completo</label>
+        <input id="cuName" class="form-input" type="text" placeholder="ej. John Smith" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rol</label>
+        <select id="cuRole" class="form-input">
+          <option value="readonly">readonly</option>
+          <option value="viewer">viewer</option>
+          <option value="analyst" selected>analyst</option>
+          <option value="admin">admin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <select id="cuStatus" class="form-input">
+          <option value="activo">activo</option>
+          <option value="inactivo">inactivo</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.5rem">
+        <button type="button" class="dash-btn" onclick="document.getElementById('createUserModal').classList.remove('open')">Cancelar</button>
+        <button type="submit" class="dash-btn dash-btn-accent" style="background:rgba(99,102,241,.18)">Crear usuario →</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Edit User Modal ───────────────────────────────────────────────── -->
+<div class="result-modal" id="editUserModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="result-box" style="max-width:440px">
+    <div class="result-head">
+      <h3>✏️ Editar usuario</h3>
+      <button class="btn-close-modal" onclick="document.getElementById('editUserModal').classList.remove('open')">✕</button>
+    </div>
+    <form id="euForm" onsubmit="event.preventDefault();saveEditUser()" style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:.9rem">
+      <div class="form-group">
+        <label class="form-label">ID de usuario</label>
+        <input id="euId" class="form-input" type="text" readonly style="opacity:.5;cursor:not-allowed">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre completo</label>
+        <input id="euName" class="form-input" type="text" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rol</label>
+        <select id="euRole" class="form-input">
+          <option value="readonly">readonly</option>
+          <option value="viewer">viewer</option>
+          <option value="analyst">analyst</option>
+          <option value="admin">admin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <select id="euStatus" class="form-input">
+          <option value="activo">activo</option>
+          <option value="inactivo">inactivo</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.5rem">
+        <button type="button" class="dash-btn" onclick="document.getElementById('editUserModal').classList.remove('open')">Cancelar</button>
+        <button type="submit" class="dash-btn dash-btn-accent" style="background:rgba(99,102,241,.18)">Guardar cambios →</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Tenant Config Modal ───────────────────────────────────────────── -->
+<div class="result-modal" id="tenantModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="result-box" style="max-width:500px">
+    <div class="result-head">
+      <h3>⚙ Configuración de Tenant</h3>
+      <button class="btn-close-modal" onclick="document.getElementById('tenantModal').classList.remove('open')">✕</button>
+    </div>
+    <form id="tcForm" onsubmit="event.preventDefault();saveTenantConfig()" style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:.9rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem">
+        <div class="form-group">
+          <label class="form-label">Nombre del tenant</label>
+          <input id="tcName" class="form-input" type="text" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Plan</label>
+          <select id="tcPlan" class="form-input">
+            <option value="Starter">Starter</option>
+            <option value="Professional">Professional</option>
+            <option value="Enterprise">Enterprise</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Usuarios máximos</label>
+          <input id="tcMaxUsers" class="form-input" type="number" min="1" max="500">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Retención de logs (días)</label>
+          <input id="tcLogRet" class="form-input" type="number" min="7" max="730">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">IP Allowlist (CIDR)</label>
+        <input id="tcIPAllow" class="form-input" type="text" placeholder="0.0.0.0/0">
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <input id="tcMFA" type="checkbox" style="width:1rem;height:1rem;accent-color:var(--accent)">
+        <label for="tcMFA" class="form-label" style="margin:0;cursor:pointer">Requerir MFA para todos los usuarios</label>
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.5rem">
+        <button type="button" class="dash-btn" onclick="document.getElementById('tenantModal').classList.remove('open')">Cancelar</button>
+        <button type="submit" class="dash-btn dash-btn-accent" style="background:rgba(99,102,241,.18)">Guardar configuración →</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 </body>
 </html>
